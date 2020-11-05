@@ -58,7 +58,6 @@ const (
 	GetDropletRequest                                           = "GetDroplet"
 	GetDropletsRequest                                          = "GetDroplets"
 	GetEnvironmentVariableGroupRequest                          = "GetEnvironmentVariableGroup"
-	GetEnvironmentVariablesByRevision                           = "GetEnvironmentVariablesByRevision"
 	GetEventsRequest                                            = "GetEvents"
 	GetFeatureFlagRequest                                       = "GetFeatureFlag"
 	GetFeatureFlagsRequest                                      = "GetFeatureFlags"
