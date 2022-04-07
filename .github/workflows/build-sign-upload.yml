@@ -1,12 +1,11 @@
-
 name: Build-Sign-Upload
 
 on:
   push:
     tags:
-    - 'v8.*'
+    - 'v7.*'
     branches:
-    - 'wip-gh-actions-v8-squashed'
+    - 'v7-gh-actions'
 
 permissions:
   contents: read
@@ -26,6 +25,7 @@ jobs:
       secrets-environment: ${{ steps.set-secrets-environment.outputs.secrets-environment }}
       build-version: ${{ steps.set-build-version.outputs.build-version }}
       go-version: ${{ steps.set-go-version.outputs.go-version }}
+      major-version: ${{ steps.set-major-version.outputs.major-version }}
     steps:
     # note the key must be 'id' and not 'name' here, to be accessed via the steps.<step> syntax above
 
@@ -52,6 +52,12 @@ jobs:
     - name: Set go version
       id: set-go-version
       run: echo "::set-output name=go-version::1.17"
+
+    - name: Set Major version
+      id: set-major-version
+      run: |
+        major=$(cat BUILD_VERSION | cut -c 1-1)
+        echo "::set-output name=major-version::$major"
 
     # This is for debugging. It's equivalent to fly intecept
     # - name: Setup upterm session
@@ -119,6 +125,8 @@ jobs:
     name: Test Windows Artifacts
     needs: build-windows
     runs-on: windows-latest
+    env:
+      MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
     defaults:
       run:
         shell: pwsh
@@ -145,11 +153,12 @@ jobs:
 
     - name: View installer signature
       run: |
-        Expand-Archive -DestinationPath winx64 -Path cf8-cli-installer_*_winx64.zip
-        Expand-Archive -DestinationPath win32  -Path cf8-cli-installer_*_win32.zip
+        $CF="cf${MAJOR_VERSION}"
+        Expand-Archive -DestinationPath winx64 -Path ${CF}-cli-installer_*_winx64.zip
+        Expand-Archive -DestinationPath win32  -Path ${CF}-cli-installer_*_win32.zip
 
-        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\winx64\cf8_installer.exe"
-        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\win32\cf8_installer.exe"
+        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\winx64\${CF}_installer.exe"
+        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\win32\${CF}_installer.exe"
 
   build-linux:
     name: Build Linux
@@ -159,6 +168,7 @@ jobs:
     environment: ${{ needs.setup.outputs.secrets-environment }}
 
     env:
+      MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
       BUILD_VERSION: ${{ needs.setup.outputs.build-version }}
 
     steps:
@@ -226,6 +236,7 @@ jobs:
         $SIGNING_KEY_GPG_ID
         EOF
 
+        CF_VERSION=cf${MAJOR_VERSION}
         RPM_VERSION=${BUILD_VERSION//-/_}
 
         mkdir -pv $root/packaged
@@ -233,14 +244,14 @@ jobs:
         echo "Build 32-bit RedHat package"
         (
           pushd cli-ci/ci/installers/rpm
-        	cp $root/out/cf-cli_linux_i686 cf8
+        	cp $root/out/cf-cli_linux_i686 ${CF_VERSION}
         	cp ../../license/NOTICE .
         	cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES LICENSE
-        	cp ../completion/cf8 cf8.bash
+        	cp ../completion/${CF_VERSION} ${CF_VERSION}.bash
         	echo "Version: ${RPM_VERSION}" > cf-cli.spec
-        	cat cf8-cli.spec.template >> cf-cli.spec
+        	cat ${CF_VERSION}-cli.spec.template >> cf-cli.spec
         	rpmbuild --target i386 --define "_topdir $(pwd)/build" -bb cf-cli.spec
-        	mv build/RPMS/i386/cf8-cli*.rpm $root/packaged/cf8-cli-installer_${BUILD_VERSION}_i686.rpm
+        	mv build/RPMS/i386/${CF_VERSION}-cli*.rpm $root/packaged/${CF_VERSION}-cli-installer_${BUILD_VERSION}_i686.rpm
           popd
         )
 
@@ -248,14 +259,14 @@ jobs:
         echo "Build 64-bit RedHat package"
         (
           pushd cli-ci/ci/installers/rpm
-        	cp $root/out/cf-cli_linux_x86-64 cf8
+        	cp $root/out/cf-cli_linux_x86-64 ${CF_VERSION}
         	cp ../../license/NOTICE .
         	cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES LICENSE
-        	cp ../completion/cf8 cf8.bash
+        	cp ../completion/${CF_VERSION} ${CF_VERSION}.bash
         	echo "Version: ${RPM_VERSION}" > cf-cli.spec
-        	cat cf8-cli.spec.template >> cf-cli.spec
+        	cat ${CF_VERSION}-cli.spec.template >> cf-cli.spec
         	rpmbuild --target x86_64 --define "_topdir $(pwd)/build" -bb cf-cli.spec
-        	mv build/RPMS/x86_64/cf8-cli*.rpm $root/packaged/cf8-cli-installer_${BUILD_VERSION}_x86-64.rpm
+        	mv build/RPMS/x86_64/${CF_VERSION}-cli*.rpm $root/packaged/${CF_VERSION}-cli-installer_${BUILD_VERSION}_x86-64.rpm
           popd
         )
 
@@ -308,7 +319,7 @@ jobs:
         set -o pipefail
 
         root=$PWD
-
+        CF_VERSION=cf${MAJOR_VERSION}
         mkdir -pv $root/packaged-deb
 
         echo "Build 32-bit Debian package"
@@ -316,30 +327,30 @@ jobs:
           SIZE="$(BLOCKSIZE=1000 du $root/out/cf-cli_linux_i686 | cut -f 1)"
 
           pushd cli-ci/ci/installers/deb
-            mkdir -p cf/usr/bin cf/usr/share/doc/cf8-cli/ cf/DEBIAN cf/usr/share/bash-completion/completions
+            mkdir -p cf/usr/bin cf/usr/share/doc/${CF_VERSION}-cli/ cf/DEBIAN cf/usr/share/bash-completion/completions
 
             cp copyright_preamble cf/DEBIAN/copyright
             sed 's/^$/ ./' $root/LICENSE >> cf/DEBIAN/copyright
             cat copyright_comment_header >> cf/DEBIAN/copyright
             sed 's/^$/ ./' ../../license/3RD-PARTY-LICENSES >> cf/DEBIAN/copyright
 
-            cp cf/DEBIAN/copyright cf/usr/share/doc/cf8-cli/copyright
+            cp cf/DEBIAN/copyright cf/usr/share/doc/${CF_VERSION}-cli/copyright
 
-            cp ../../license/NOTICE cf/usr/share/doc/cf8-cli
-            cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/cf8-cli/LICENSE
+            cp ../../license/NOTICE cf/usr/share/doc/${CF_VERSION}-cli
+            cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/${CF_VERSION}-cli/LICENSE
 
             cp control_v8.template cf/DEBIAN/control
             echo "Installed-Size: ${SIZE}" >> cf/DEBIAN/control
             echo "Version: ${BUILD_VERSION}" >> cf/DEBIAN/control
             echo "Architecture: i386" >> cf/DEBIAN/control
 
-            cp ../completion/cf8 cf/usr/share/bash-completion/completions/cf8
+            cp ../completion/${CF_VERSION} cf/usr/share/bash-completion/completions/${CF_VERSION}
 
-            cp $root/out/cf-cli_linux_i686 cf/usr/bin/cf8
-            ln -frs cf/usr/bin/cf8 cf/usr/bin/cf
+            cp $root/out/cf-cli_linux_i686 cf/usr/bin/${CF_VERSION}
+            ln -frs cf/usr/bin/${CF_VERSION} cf/usr/bin/cf
 
-            fakeroot dpkg --build cf cf8-cli-installer_${BUILD_VERSION}_i686.deb
-            mv cf8-cli-installer_${BUILD_VERSION}_i686.deb $root/packaged-deb
+            fakeroot dpkg --build cf ${CF_VERSION}-cli-installer_${BUILD_VERSION}_i686.deb
+            mv ${CF_VERSION}-cli-installer_${BUILD_VERSION}_i686.deb $root/packaged-deb
             rm -rf cf
           popd
         )
@@ -349,30 +360,30 @@ jobs:
           SIZE="$(BLOCKSIZE=1000 du $root/out/cf-cli_linux_x86-64 | cut -f 1)"
 
           pushd cli-ci/ci/installers/deb
-            mkdir -p cf/usr/bin cf/usr/share/doc/cf8-cli/ cf/DEBIAN cf/usr/share/bash-completion/completions
+            mkdir -p cf/usr/bin cf/usr/share/doc/${CF_VERSION}-cli/ cf/DEBIAN cf/usr/share/bash-completion/completions
 
             cp copyright_preamble cf/DEBIAN/copyright
             sed 's/^$/ ./' $root/LICENSE >> cf/DEBIAN/copyright
             cat copyright_comment_header >> cf/DEBIAN/copyright
             sed 's/^$/ ./' ../../license/3RD-PARTY-LICENSES >> cf/DEBIAN/copyright
 
-            cp cf/DEBIAN/copyright cf/usr/share/doc/cf8-cli/copyright
+            cp cf/DEBIAN/copyright cf/usr/share/doc/${CF_VERSION}-cli/copyright
 
-            cp ../../license/NOTICE cf/usr/share/doc/cf8-cli
-            cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/cf8-cli/LICENSE
+            cp ../../license/NOTICE cf/usr/share/doc/${CF_VERSION}-cli
+            cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/${CF_VERSION}-cli/LICENSE
 
             cp control_v8.template cf/DEBIAN/control
             echo "Installed-Size: ${SIZE}" >> cf/DEBIAN/control
             echo "Version: ${BUILD_VERSION}" >> cf/DEBIAN/control
             echo "Architecture: amd64" >> cf/DEBIAN/control
 
-            cp ../completion/cf8 cf/usr/share/bash-completion/completions/cf8
+            cp ../completion/${CF_VERSION} cf/usr/share/bash-completion/completions/${CF_VERSION}
 
-            cp $root/out/cf-cli_linux_x86-64 cf/usr/bin/cf8
-            ln -frs cf/usr/bin/cf8 cf/usr/bin/cf
+            cp $root/out/cf-cli_linux_x86-64 cf/usr/bin/${CF_VERSION}
+            ln -frs cf/usr/bin/${CF_VERSION} cf/usr/bin/cf
 
-            fakeroot dpkg --build cf cf8-cli-installer_${BUILD_VERSION}_x86-64.deb
-            mv cf8-cli-installer_${BUILD_VERSION}_x86-64.deb $root/packaged-deb
+            fakeroot dpkg --build cf ${CF_VERSION}-cli-installer_${BUILD_VERSION}_x86-64.deb
+            mv ${CF_VERSION}-cli-installer_${BUILD_VERSION}_x86-64.deb $root/packaged-deb
           popd
         )
 
@@ -398,6 +409,8 @@ jobs:
     - setup
     runs-on: macos-latest
     environment: ${{ needs.setup.outputs.secrets-environment }}
+    env:
+      MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
     steps:
 
     - name: Setup
@@ -489,6 +502,7 @@ jobs:
 
         root=$PWD
 
+        CF_VERSION=cf${MAJOR_VERSION}
         mkdir -pv $root/packaged
 
         echo "Building OS X installer"
@@ -498,12 +512,12 @@ jobs:
         pushd cli-ci/ci/installers/osx_v8
           sed -i -e "s/VERSION/${BUILD_VERSION}/g" Distribution
           sed -i -e "s/SIZE/${SIZE}/g" Distribution
-          mkdir -p cf-cli/usr/local/bin cf-cli/usr/local/share/doc/cf8-cli
+          mkdir -p cf-cli/usr/local/bin cf-cli/usr/local/share/doc/${CF_VERSION}-cli
 
-          cp $root/out/cf-cli_osx cf-cli/usr/local/bin/cf8
-          gln -frs cf-cli/usr/local/bin/cf8 cf-cli/usr/local/bin/cf
-          cp ../../license/NOTICE cf-cli/usr/local/share/doc/cf8-cli
-          cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf-cli/usr/local/share/doc/cf8-cli/LICENSE
+          cp $root/out/cf-cli_osx cf-cli/usr/local/bin/${CF_VERSION}
+          gln -frs cf-cli/usr/local/bin/${CF_VERSION} cf-cli/usr/local/bin/cf
+          cp ../../license/NOTICE cf-cli/usr/local/share/doc/${CF_VERSION}-cli
+          cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf-cli/usr/local/share/doc/${CF_VERSION}-cli/LICENSE
           chmod -R go-w cf-cli
           pushd cf-cli
             find usr | cpio -o --format=odc | gzip -c > ../Payload
@@ -511,9 +525,9 @@ jobs:
 
           $root/bomutils/build/bin/ls4mkbom cf-cli | sed 's/1000\/1000/0\/80/' > bom_list
           mkbom -i bom_list Bom
-          mv Bom Payload com.cloudfoundry.cf8-cli.pkg
-          xar -c --compression none -f cf8-cli-installer_osx.pkg com.cloudfoundry.cf8-cli.pkg Distribution
-          mv cf8-cli-installer_osx.pkg $root/packaged/cf8-cli-installer_osx.pkg
+          mv Bom Payload com.cloudfoundry.${CF_VERSION}-cli.pkg
+          xar -c --compression none -f ${CF_VERSION}-cli-installer_osx.pkg com.cloudfoundry.${CF_VERSION}-cli.pkg Distribution
+          mv ${CF_VERSION}-cli-installer_osx.pkg $root/packaged/${CF_VERSION}-cli-installer_osx.pkg
         popd
         )
 
@@ -588,6 +602,9 @@ jobs:
     - setup
     runs-on: windows-2019
     environment: ${{ needs.setup.outputs.secrets-environment }}
+    env:
+      MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
+      CF_VERSION: cf${MAJOR_VERSION}
     defaults:
       run:
         shell: pwsh
