@@ -153,7 +153,7 @@ jobs:
 
     - name: View installer signature
       run: |
-        $CF="cf${MAJOR_VERSION}"
+        CF="cf${MAJOR_VERSION}"
         Expand-Archive -DestinationPath winx64 -Path ${CF}-cli-installer_*_winx64.zip
         Expand-Archive -DestinationPath win32  -Path ${CF}-cli-installer_*_win32.zip
 
