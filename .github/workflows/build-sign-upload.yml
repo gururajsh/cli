@@ -687,21 +687,20 @@ jobs:
       - name: Run innosetup
         run: |
           mkdir "$env:RUNNER_TEMP\winx64"
-          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\cf8_installer.exe"
+          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${CF_VERSION}_installer.exe"
           mkdir "$env:RUNNER_TEMP\win32"
-          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\cf8_installer.exe"
-
+          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\${CF_VERSION}_installer.exe"
       - name: Sign windows installer
         run: |
-          .\.github\win\sign-windows-binary.ps1 -BinaryFilePath "$env:RUNNER_TEMP\winx64\cf8_installer.exe"
-          .\.github\win\sign-windows-binary.ps1 -BinaryFilePath "$env:RUNNER_TEMP\win32\cf8_installer.exe"
+          .\.github\win\sign-windows-binary.ps1 -BinaryFilePath "$env:RUNNER_TEMP\winx64\${CF_VERSION}_installer.exe"
+          .\.github\win\sign-windows-binary.ps1 -BinaryFilePath "$env:RUNNER_TEMP\win32\${CF_VERSION}_installer.exe"
         env:
           SIGNING_KEY_WINDOWS_PASSPHRASE: ${{ secrets.SIGNING_KEY_WINDOWS_PASSPHRASE }}
 
       - name: View installer signature
         run: |
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\winx64\cf8_installer.exe"
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\win32\cf8_installer.exe"
+          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\winx64\${CF_VERSION}_installer.exe"
+          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\win32\${CF_VERSION}_installer.exe"
 
       - name: Arrange files for upload
         # note the -Path flag takes comma-delimited args
@@ -714,11 +713,11 @@ jobs:
           # strip leading v to go from tag -> semver
           $installer_release_version="$(cat BUILD_VERSION)".Replace("v", "")
           pushd "$env:RUNNER_TEMP\winx64"
-            $installer_zip_filename="$env:RUNNER_TEMP\cf8-cli-installer_${installer_release_version}_winx64.zip"
+            $installer_zip_filename="$env:RUNNER_TEMP\${CF_VERSION}-cli-installer_${installer_release_version}_winx64.zip"
             Compress-Archive -DestinationPath "$installer_zip_filename" -Path *
           popd
           pushd "$env:RUNNER_TEMP\win32"
-            $installer_zip_filename="$env:RUNNER_TEMP\cf8-cli-installer_${installer_release_version}_win32.zip"
+            $installer_zip_filename="$env:RUNNER_TEMP\${CF_VERSION}-cli-installer_${installer_release_version}_win32.zip"
             Compress-Archive -DestinationPath "$installer_zip_filename" -Path *
           popd
           Get-ChildItem "$env:RUNNER_TEMP"
@@ -728,7 +727,7 @@ jobs:
         with:
           name: cf-cli-windows-packages
           if-no-files-found: error
-          path: ${{ runner.temp }}/cf8-cli-installer*win*.zip
+          path: ${{ runner.temp }}/${CF_VERSION}-cli-installer*win*.zip
 
 #################################
 ######## Release Section ########
@@ -747,6 +746,9 @@ jobs:
     permissions:
       actions: read
       contents: read
+    env:
+      MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
+      CF_VERSION: cf${MAJOR_VERSION}
     steps:
     - name: Checkout cli
       uses: actions/checkout@v2
@@ -770,48 +772,48 @@ jobs:
         }
 
         prepare_artifacts() {
-            chmod +x cf8
-            ln -s cf8 cf
+            chmod +x ${CF_VERSION}
+            ln -s ${CF_VERSION} cf
             prepare_legal
         }
 
         prepare_win_artifacts() {
-            cp cf8.exe cf.exe
+            cp ${CF_VERSION}.exe cf.exe
             prepare_legal
         }
 
         pushd signed
           mkdir linux_i686 linux_x86-64
-          mv cf-cli-linux-binaries/cf-cli_linux_i686 linux_i686/cf8
-          mv cf-cli-linux-binaries/cf-cli_linux_x86-64 linux_x86-64/cf8
+          mv cf-cli-linux-binaries/cf-cli_linux_i686 linux_i686/${CF_VERSION}
+          mv cf-cli-linux-binaries/cf-cli_linux_x86-64 linux_x86-64/${CF_VERSION}
           pushd linux_i686
             prepare_artifacts
-            tar -cvzf cf8-cli_${INSTALLER_RELEASE_VERSION}_linux_i686.tgz *
+            tar -cvzf ${CF_VERSION}-cli_${INSTALLER_RELEASE_VERSION}_linux_i686.tgz *
           popd
           pushd linux_x86-64
             prepare_artifacts
-            tar -cvzf cf8-cli_${INSTALLER_RELEASE_VERSION}_linux_x86-64.tgz *
+            tar -cvzf ${CF_VERSION}-cli_${INSTALLER_RELEASE_VERSION}_linux_x86-64.tgz *
           popd
 
           mkdir osx
-          mv cf-cli-macos-binaries/cf-cli_osx osx/cf8
+          mv cf-cli-macos-binaries/cf-cli_osx osx/${CF_VERSION}
           pushd osx
             prepare_artifacts
-            tar -cvzf cf8-cli_${INSTALLER_RELEASE_VERSION}_osx.tgz *
+            tar -cvzf ${CF_VERSION}-cli_${INSTALLER_RELEASE_VERSION}_osx.tgz *
           popd
 
           mkdir win32 winx64
-          mv cf-cli-windows-binaries/cf-cli_win32.exe win32/cf8.exe
-          mv cf-cli-windows-binaries/cf-cli_winx64.exe winx64/cf8.exe
+          mv cf-cli-windows-binaries/cf-cli_win32.exe win32/${CF_VERSION}.exe
+          mv cf-cli-windows-binaries/cf-cli_winx64.exe winx64/${CF_VERSION}.exe
           pushd win32
             prepare_win_artifacts
             # -y flag avoids the default behavior of derefencing the link, so we archive the symlink as-is
-            zip -y cf8-cli_${INSTALLER_RELEASE_VERSION}_win32.zip *
+            zip -y ${CF_VERSION}-cli_${INSTALLER_RELEASE_VERSION}_win32.zip *
           popd
           pushd winx64
             prepare_win_artifacts
             # -y flag avoids the default behavior of derefencing the link, so we archive the symlink as-is
-            zip -y cf8-cli_${INSTALLER_RELEASE_VERSION}_winx64.zip *
+            zip -y ${CF_VERSION}-cli_${INSTALLER_RELEASE_VERSION}_winx64.zip *
           popd
         popd
       env:
