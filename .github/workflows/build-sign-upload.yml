@@ -339,7 +339,7 @@ jobs:
             cp ../../license/NOTICE cf/usr/share/doc/${CF_VERSION}-cli
             cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/${CF_VERSION}-cli/LICENSE
 
-            cp control_v8.template cf/DEBIAN/control
+            cp control_v${MAJOR_VERSION}.template cf/DEBIAN/control
             echo "Installed-Size: ${SIZE}" >> cf/DEBIAN/control
             echo "Version: ${BUILD_VERSION}" >> cf/DEBIAN/control
             echo "Architecture: i386" >> cf/DEBIAN/control
@@ -372,7 +372,7 @@ jobs:
             cp ../../license/NOTICE cf/usr/share/doc/${CF_VERSION}-cli
             cp ../../license/LICENSE-WITH-3RD-PARTY-LICENSES cf/usr/share/doc/${CF_VERSION}-cli/LICENSE
 
-            cp control_v8.template cf/DEBIAN/control
+            cp control_v${MAJOR_VERSION}.template cf/DEBIAN/control
             echo "Installed-Size: ${SIZE}" >> cf/DEBIAN/control
             echo "Version: ${BUILD_VERSION}" >> cf/DEBIAN/control
             echo "Architecture: amd64" >> cf/DEBIAN/control
@@ -509,7 +509,7 @@ jobs:
         (
         SIZE="$(BLOCKSIZE=1000 du $root/out/cf-cli_osx | cut -f 1)"
 
-        pushd cli-ci/ci/installers/osx_v8
+        pushd cli-ci/ci/installers/osx_v${MAJOR_VERSION}
           sed -i -e "s/VERSION/${BUILD_VERSION}/g" Distribution
           sed -i -e "s/SIZE/${SIZE}/g" Distribution
           mkdir -p cf-cli/usr/local/bin cf-cli/usr/local/share/doc/${CF_VERSION}-cli
@@ -687,10 +687,11 @@ jobs:
       - name: Run innosetup
         run: |
           mkdir "$env:RUNNER_TEMP\winx64"
-          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${env:CF_VERSION}_installer.exe"
+          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${env:CF_VERSION}_installer.exe"
           mkdir "$env:RUNNER_TEMP\win32"
-          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\${env:CF_VERSION}_installer.exe"
+          .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\${env:CF_VERSION}_installer.exe"
         env:
+          MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
           CF_VERSION: cf${{ needs.setup.outputs.major-version }}
       - name: Sign windows installer
         run: |
