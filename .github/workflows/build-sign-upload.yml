@@ -687,7 +687,7 @@ jobs:
       - name: Run innosetup
         run: |
           Get-Variable MAJOR_VERSION
-          $test = "cf$env:MAJOR_VERSION"
+          $test = "cf${env:MAJOR_VERSION}"
           echo "TEST $test "
           #CF_VERSION="cf${MAJOR_VERSION}"
           mkdir "$env:RUNNER_TEMP\winx64"
