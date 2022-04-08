@@ -574,7 +574,7 @@ jobs:
 
     - name: Sign macOS
       env:
-        SUFFIX: 8
+        MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
         SIGNING_KEY_MAC_ID: ${{ secrets.SIGNING_KEY_MAC_ID }}
         SIGNING_KEY_MAC_PASSPHRASE: ${{ secrets.SIGNING_KEY_MAC_PASSPHRASE }}
       run: |
@@ -585,8 +585,8 @@ jobs:
 
         productsign --timestamp \
           --sign "$SIGNING_KEY_MAC_ID" \
-          "$root/packaged/cf${SUFFIX}-cli-installer_osx.pkg" \
-          "signed-osx-installer/cf${SUFFIX}-cli-installer_${BUILD_VERSION}_osx.pkg"
+          "$root/packaged/cf${MAJOR_VERSION}-cli-installer_osx.pkg" \
+          "signed-osx-installer/cf${MAJOR_VERSION}-cli-installer_${BUILD_VERSION}_osx.pkg"
 
     - name: Store macOS Signed Packages
       uses: actions/upload-artifact@v2
