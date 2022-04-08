@@ -686,6 +686,7 @@ jobs:
 
       - name: Run innosetup
         run: |
+          CF_VERSION="cf${MAJOR_VERSION}"
           mkdir "$env:RUNNER_TEMP\winx64"
           .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v8-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${CF_VERSION}_installer.exe"
           mkdir "$env:RUNNER_TEMP\win32"
@@ -699,6 +700,7 @@ jobs:
 
       - name: View installer signature
         run: |
+          CF_VERSION="cf${MAJOR_VERSION}"
           Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\winx64\${CF_VERSION}_installer.exe"
           Get-AuthenticodeSignature -Verbose -ErrorAction Stop "$env:RUNNER_TEMP\win32\${CF_VERSION}_installer.exe"
 
@@ -710,6 +712,9 @@ jobs:
 
       - name: Zip windows artifact
         run: |
+          CF_VERSION="cf${MAJOR_VERSION}"
+          echo "MAJOR_VERSION = $MAJOR_VERSION"
+          echo "CF_VERSION = $CF_VERSION"
           # strip leading v to go from tag -> semver
           $installer_release_version="$(cat BUILD_VERSION)".Replace("v", "")
           pushd "$env:RUNNER_TEMP\winx64"
