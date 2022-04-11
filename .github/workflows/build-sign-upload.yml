@@ -123,7 +123,9 @@ jobs:
 
   test-windows:
     name: Test Windows Artifacts
-    needs: build-windows
+    needs:
+    - setup
+    - build-windows
     runs-on: windows-latest
     defaults:
       run:
@@ -151,13 +153,13 @@ jobs:
 
     - name: View installer signature
       run: |
-        Expand-Archive -DestinationPath winx64 -Path "cf${env:MAJOR_VERSION}-cli-installer_*_winx64.zip"
-        Expand-Archive -DestinationPath win32  -Path "cf${env:MAJOR_VERSION}-cli-installer_*_win32.zip"
+        Expand-Archive -DestinationPath winx64 -Path  "${env:CF_VERSION}-cli-installer_*_winx64.zip"
+        Expand-Archive -DestinationPath win32  -Path  "${env:CF_VERSION}-cli-installer_*_win32.zip"
 
-        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\winx64\cf7_installer.exe"
-        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\win32\cf7_installer.exe"
+        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\winx64\${env:CF_VERSION}_installer.exe"
+        Get-AuthenticodeSignature -Verbose -ErrorAction Stop ".\win32\${env:CF_VERSION}_installer.exe"
       env:
-        MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
+        CF_VERSION: cf${{ needs.setup.outputs.major-version }}
 
   build-linux:
     name: Build Linux
@@ -686,9 +688,9 @@ jobs:
       - name: Run innosetup
         run: |
           mkdir "$env:RUNNER_TEMP\winx64"
-          ".\.github\win\run-innosetup-v${env:MAJOR_VERSION}.ps1" -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${env:CF_VERSION}_installer.exe"
+          & .\.github\win\run-innosetup-v${env:MAJOR_VERSION}.ps1 -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x64.iss" -CfBinary "out\cf-cli_winx64.exe" -InstallerOutput "$env:RUNNER_TEMP\winx64\${env:CF_VERSION}_installer.exe"
           mkdir "$env:RUNNER_TEMP\win32"
-          ".\.github\win\run-innosetup-v${env:MAJOR_VERSION}.ps1" -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\${env:CF_VERSION}_installer.exe"
+          & .\.github\win\run-innosetup-v${env:MAJOR_VERSION}.ps1 -InnoSetupConfig ".github\win\windows-installer-v${env:MAJOR_VERSION}-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "$env:RUNNER_TEMP\win32\${env:CF_VERSION}_installer.exe"
         env:
           MAJOR_VERSION: ${{ needs.setup.outputs.major-version }}
           CF_VERSION: cf${{ needs.setup.outputs.major-version }}
