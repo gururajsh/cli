@@ -7,7 +7,6 @@ on:
       - main
       - v8
       - v7
-      - go119-bump
     paths-ignore:
       - 'doc/**'
       - '.gitpod.yml'
