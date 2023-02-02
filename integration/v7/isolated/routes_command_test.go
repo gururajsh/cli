@@ -2,6 +2,7 @@ package isolated
 
 import (
 	"fmt"
+	"time"
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccversion"
 	. "code.cloudfoundry.org/cli/cf/util/testhelpers/matchers"
@@ -182,6 +183,8 @@ var _ = Describe("routes command", func() {
 			})
 
 			It("lists all the routes", func() {
+				//Delay to reduce flakiness
+				time.Sleep(5 * time.Second)
 				session := helpers.CF("routes")
 				Eventually(session).Should(Exit(0))
 				Expect(session).To(Say(`Getting routes for org %s / space %s as %s\.\.\.`, orgName, spaceName, userName))
