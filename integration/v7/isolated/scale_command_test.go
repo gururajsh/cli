@@ -301,6 +301,10 @@ var _ = Describe("scale command", func() {
 						buffer := NewBuffer()
 						_, err := buffer.Write([]byte("y\n"))
 						Expect(err).ToNot(HaveOccurred())
+
+						//Delay to reduce flakiness
+						time.Sleep(3 * time.Second)
+
 						session := helpers.CFWithStdin(buffer, "scale", appName, "-i", "2", "-k", "512M", "-m", "60M")
 						Eventually(session).Should(Exit(0))
 						Expect(session).To(Say(`Scaling app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
@@ -311,7 +315,7 @@ var _ = Describe("scale command", func() {
 						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "60M")
 
 						//Delay to reduce flakiness
-						time.Sleep(10 * time.Second)
+						time.Sleep(5 * time.Second)
 
 						session = helpers.CF("app", appName)
 						Eventually(session).Should(Exit(0))
