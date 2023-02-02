@@ -105,7 +105,7 @@ var _ = Describe("scale command", func() {
 				helpers.WithProcfileApp(func(appDir string) {
 					Eventually(helpers.CustomCF(helpers.CFEnv{WorkingDirectory: appDir}, "push", appName)).Should(Exit(0))
 				})
-				helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false)
+				helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "1G")
 			})
 
 			When("scale option flags are not provided", func() {
@@ -162,7 +162,7 @@ var _ = Describe("scale command", func() {
 						Consistently(session).ShouldNot(Say("Stopping"))
 						Consistently(session).ShouldNot(Say("Starting"))
 
-						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, true)
+						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, true, "1G")
 
 						session = helpers.CF("app", appName)
 						Eventually(session).Should(Exit(0))
@@ -191,7 +191,7 @@ var _ = Describe("scale command", func() {
 						Expect(session).To(Say(`Stopping app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 						Expect(session).To(Say(`Starting app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 
-						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false)
+						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "64M")
 					})
 
 					When("-f flag provided", func() {
@@ -200,7 +200,7 @@ var _ = Describe("scale command", func() {
 							Eventually(session).Should(Exit(0))
 							Expect(session).To(Say("Scaling app %s in org %s / space %s as %s...", appName, orgName, spaceName, userName))
 
-							helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false)
+							helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "64M")
 						})
 					})
 				})
@@ -308,7 +308,7 @@ var _ = Describe("scale command", func() {
 						Expect(session).To(Say(`Stopping app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 						Expect(session).To(Say(`Starting app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 
-						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false)
+						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "60M")
 
 						//Delay to reduce flakiness
 						time.Sleep(10 * time.Second)
@@ -341,7 +341,7 @@ var _ = Describe("scale command", func() {
 						Expect(session).To(Say(`Stopping app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 						Expect(session).To(Say(`Starting app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 
-						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false)
+						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "6M")
 
 						session = helpers.CF("restart", appName)
 						Eventually(session).Should(Exit(1))
