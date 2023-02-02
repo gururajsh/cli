@@ -3,6 +3,7 @@ package isolated
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccversion"
 	. "code.cloudfoundry.org/cli/cf/util/testhelpers/matchers"
@@ -308,6 +309,9 @@ var _ = Describe("scale command", func() {
 						Expect(session).To(Say(`Starting app %s in org %s / space %s as %s\.\.\.`, appName, orgName, spaceName, userName))
 
 						helpers.WaitForAppMemoryToTakeEffect(appName, 0, 0, false, "60M")
+
+						//Delay to reduce flakiness
+						time.Sleep(10 * time.Second)
 
 						session = helpers.CF("app", appName)
 						Eventually(session).Should(Exit(0))
