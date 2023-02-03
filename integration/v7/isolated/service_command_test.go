@@ -172,7 +172,7 @@ var _ = Describe("service command", func() {
 
 				It("displays the bound apps", func() {
 					//Delay to reduce flakiness
-					time.Sleep(5 * time.Second)
+					time.Sleep(10 * time.Second)
 					session := helpers.CF(serviceCommand, serviceInstanceName, "-v")
 					Eventually(session).Should(Exit(0))
 

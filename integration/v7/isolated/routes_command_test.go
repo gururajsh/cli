@@ -2,7 +2,6 @@ package isolated
 
 import (
 	"fmt"
-	"time"
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccversion"
 	. "code.cloudfoundry.org/cli/cf/util/testhelpers/matchers"
@@ -183,13 +182,11 @@ var _ = Describe("routes command", func() {
 			})
 
 			It("lists all the routes", func() {
-				//Delay to reduce flakiness
-				time.Sleep(5 * time.Second)
 				session := helpers.CF("routes")
 				Eventually(session).Should(Exit(0))
 				Expect(session).To(Say(`Getting routes for org %s / space %s as %s\.\.\.`, orgName, spaceName, userName))
 				Expect(session).To(Say(tableHeaders))
-				Eventually(session).Should(Say(`%s\s+route1\s+%s\s+http\s+http1, http2\s+%s\s+\n`, spaceName, domainName, fmt.Sprintf("%s, %s", appName1, appName2)))
+				Eventually(session).Should(Say(`%s\s+route1\s+%s\s+http\s+http1, http2\s+%s\s+\n`, spaceName, domainName, fmt.Sprintf("%s, %s", appName2, appName1)))
 				Eventually(session).Should(Say(`%s\s+route2\s+%s\s+http\s+http1\s+%s\s+\n`, spaceName, domainName, appName2))
 			})
 		})
