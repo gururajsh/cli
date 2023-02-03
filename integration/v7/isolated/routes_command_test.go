@@ -163,9 +163,9 @@ var _ = Describe("routes command", func() {
 
 				domain = helpers.NewDomain(orgName, domainName)
 
-				appName1 = helpers.NewAppName()
+				appName1 = "routes-command-http-int-test-app1"
 				Eventually(helpers.CF("create-app", appName1)).Should(Exit(0))
-				appName2 = helpers.NewAppName()
+				appName2 = "routes-command-http-int-test-app2"
 				Eventually(helpers.CF("create-app", appName2)).Should(Exit(0))
 
 				domain.CreatePrivate()
@@ -186,7 +186,7 @@ var _ = Describe("routes command", func() {
 				Eventually(session).Should(Exit(0))
 				Expect(session).To(Say(`Getting routes for org %s / space %s as %s\.\.\.`, orgName, spaceName, userName))
 				Expect(session).To(Say(tableHeaders))
-				Eventually(session).Should(Say(`%s\s+route1\s+%s\s+http\s+http1, http2\s+%s\s+\n`, spaceName, domainName, fmt.Sprintf("%s, %s", appName2, appName1)))
+				Eventually(session).Should(Say(`%s\s+route1\s+%s\s+http\s+http1, http2\s+%s\s+\n`, spaceName, domainName, fmt.Sprintf("%s, %s", appName1, appName2)))
 				Eventually(session).Should(Say(`%s\s+route2\s+%s\s+http\s+http1\s+%s\s+\n`, spaceName, domainName, appName2))
 			})
 		})
