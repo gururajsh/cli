@@ -163,9 +163,9 @@ var _ = Describe("routes command", func() {
 
 				domain = helpers.NewDomain(orgName, domainName)
 
-				appName1 = "routes-command-http-int-test-app1"
+				appName1 = helpers.NewAppName()
 				Eventually(helpers.CF("create-app", appName1)).Should(Exit(0))
-				appName2 = "routes-command-http-int-test-app2"
+				appName2 = helpers.NewAppName()
 				Eventually(helpers.CF("create-app", appName2)).Should(Exit(0))
 
 				domain.CreatePrivate()
