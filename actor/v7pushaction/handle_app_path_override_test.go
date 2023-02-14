@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	. "code.cloudfoundry.org/cli/actor/v7pushaction"
 	"code.cloudfoundry.org/cli/cf/util/testhelpers/matchers"
@@ -43,7 +44,7 @@ var _ = Describe("HandleAppPathOverride", func() {
 		BeforeEach(func() {
 			file, err := ioutil.TempFile("", "")
 			Expect(err).NotTo(HaveOccurred())
-			relativeAppFilePath = file.Name()
+			relativeAppFilePath = strings.Trim(".\\", file.Name())
 			defer file.Close()
 
 			flagOverrides = FlagOverrides{
