@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	. "code.cloudfoundry.org/cli/actor/v7pushaction"
 	"code.cloudfoundry.org/cli/cf/util/testhelpers/matchers"
@@ -53,7 +52,8 @@ var _ = Describe("HandleAppPathOverride", func() {
 		})
 
 		AfterEach(func() {
-			err := os.RemoveAll(strings.Trim(".\\", relativeAppFilePath))
+			// err := os.RemoveAll(strings.Trim(".\\", relativeAppFilePath))
+			err := os.RemoveAll(relativeAppFilePath)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
