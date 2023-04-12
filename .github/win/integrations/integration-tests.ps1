@@ -52,16 +52,16 @@ if ((Get-Command "ginkgo" -ErrorAction SilentlyContinue) -eq $null) {
 	go install -v github.com/onsi/ginkgo/ginkgo@v1.16.4
 }
 
-$CF_INT_NAME=(Get-Content $pwd\metadata.json -Raw| Out-String | ConvertFrom-Json).name.trim()
-$Env:CF_INT_PASSWORD=(Get-Content $pwd\cf-password -Raw).trim()
-$Env:CF_INT_OIDC_PASSWORD=(Get-Content $pwd\uaa-oidc-password -Raw).trim()
+# $CF_INT_NAME=(Get-Content $pwd\metadata.json -Raw| Out-String | ConvertFrom-Json).name.trim()
+# $Env:CF_INT_PASSWORD=(Get-Content $pwd\cf-password -Raw).trim()
+# $Env:CF_INT_OIDC_PASSWORD=(Get-Content $pwd\uaa-oidc-password -Raw).trim()
 $Env:CF_INT_OIDC_USERNAME="admin-oidc"
-$Env:CF_INT_API="https://api.$CF_INT_NAME.cf-app.com"
+# $Env:CF_INT_API="https://api.$CF_INT_NAME.cf-app.com"
 $Env:CF_DIAL_TIMEOUT=15
 # Enable SSL vaildation once toolsmiths supports it
 # $Env:SKIP_SSL_VALIDATION="false"
 
-Import-Certificate -Filepath "$pwd\$CF_INT_NAME.router.ca" -CertStoreLocation "cert:\LocalMachine\root"
+# Import-Certificate -Filepath "$pwd\$CF_INT_NAME.router.ca" -CertStoreLocation "cert:\LocalMachine\root"
 
 New-Item "go/src/code.cloudfoundry.org" -Type Directory
 New-Item -ItemType SymbolicLink -Path "$pwd/go/src/code.cloudfoundry.org/cli" -Target "$pwd"
