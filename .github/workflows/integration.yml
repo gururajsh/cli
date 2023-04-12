@@ -265,8 +265,8 @@ jobs:
       CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
     needs:
       - shared-values
-      - get-windows-cc-cf-env-with-edge-capi
-      - setup-windows-integration-client-credentials
+      # - get-windows-cc-cf-env-with-edge-capi
+      # - setup-windows-integration-client-credentials
     runs-on: windows-latest
     defaults:
       run:
