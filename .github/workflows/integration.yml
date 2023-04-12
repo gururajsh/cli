@@ -192,10 +192,10 @@ jobs:
         shell: pwsh
     environment: ${{ needs.shared-values.outputs.secrets-environment }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: cli
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      #   with:
+      #     path: cli
       - name: Set Up Go
         uses: actions/setup-go@v3
         with:
@@ -258,49 +258,50 @@ jobs:
 #       environment: ${{ needs.shared-values.outputs.secrets-environment }}
 #       environment-name: ${{ needs.get-windows-cc-cf-env-with-edge-capi.outputs.environment-name }}
 
-#   run-windows-integration-client-credentials-tests:
-#     name: Run Integration tests Windows with Client Credentials
-#     env:
-#       CF_INT_CLIENT_ID: potato-face
-#       CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-#     needs:
-#       - shared-values
-#       - get-windows-cc-cf-env-with-edge-capi
-#       - setup-windows-integration-client-credentials
-#     runs-on: windows-latest
-#     defaults:
-#       run:
-#         shell: pwsh
-#     environment: ${{ needs.shared-values.outputs.secrets-environment }}
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v3
-#         with:
-#           path: cli
-#       - name: Set Up Go
-#         uses: actions/setup-go@v3
-#         with:
-#           go-version: ${{ needs.shared-values.outputs.go-version}}
-#           check-latest: true
-#       - name: Download metadata
-#         uses: actions/download-artifact@v3
-#         with:
-#           name: ${{ needs.get-windows-cc-cf-env-with-edge-capi.outputs.environment-name }}
+  run-windows-integration-client-credentials-tests:
+    name: Run Integration tests Windows with Client Credentials
+    env:
+      CF_INT_CLIENT_ID: potato-face
+      CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+    needs:
+      - shared-values
+      - get-windows-cc-cf-env-with-edge-capi
+      - setup-windows-integration-client-credentials
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    environment: ${{ needs.shared-values.outputs.secrets-environment }}
+    steps:
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      #   with:
+      #     path: cli
+      - name: Set Up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ needs.shared-values.outputs.go-version}}
+          check-latest: true
 
-#       - name: Download CF data
-#         uses: actions/download-artifact@v3
-#         with:
-#           name: cf-windows-data
+      # - name: Download metadata
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: ${{ needs.get-windows-cc-cf-env-with-edge-capi.outputs.environment-name }}
 
-#       - name: Download cli
-#         uses: dawidd6/action-download-artifact@v2
-#         with:
-#           run_id: ${{ github.event.workflow_run.id }}
-#           name: cf-cli.tgz
-#           path: ${{ github.workspace }}
+      # - name: Download CF data
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: cf-windows-data
 
-#       - name: Run Integration Tests
-#         run: cli/.github/win/integrations/integration-tests.ps1
+      - name: Download cli
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          name: cf-cli.tgz
+          path: ${{ github.workspace }}
+
+      - name: Run Integration Tests
+        run: cli/.github/win/integrations/integration-tests.ps1
 
 #   unclaim-cf-windows-cc-env-with-edge-capi:
 #     name: Unclaim CF windows with Client Credentials env with edge CAPI

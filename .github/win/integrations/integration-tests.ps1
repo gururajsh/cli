@@ -73,7 +73,7 @@ Get-Command make
 Get-Item Makefile
 
 make out/cf-cli_winx64.exe
-Move-Item -Path $pwd\cf-cli_winx64.exe  -Destination ..\cf.exe -Force
+Move-Item -Path $pwd\out\cf-cli_winx64.exe  -Destination $pwd\cf.exe -Force
 
 cf.exe api $Env:CF_INT_API --skip-ssl-validation
 cf.exe auth admin $Env:CF_INT_PASSWORD
