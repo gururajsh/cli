@@ -3,7 +3,7 @@ name: Integration Tests
 on:
   workflow_run:
     workflows: 
-      - Package CLI1
+      - Package CLI
     types: 
       - completed
 
