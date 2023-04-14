@@ -3,24 +3,27 @@ name: Package CLI
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - main
-      - v8
-      - v7
-    paths-ignore:
-      - 'doc/**'
-      - '.gitpod.yml'
-      - 'README.md'
-  push:
-    branches:
-      - main
-      - v8
-      - v7
-    paths-ignore:
-      - 'doc/**'
-      - '.github/**'
-      - '.gitpod.yml'
-      - 'README.md'
+    types:
+      - opened
+      - reopened
+  #   branches:
+  #     - main
+  #     - v8
+  #     - v7
+  #   paths-ignore:
+  #     - 'doc/**'
+  #     - '.gitpod.yml'
+  #     - 'README.md'
+  # push:
+    # branches:
+    #   - main
+    #   - v8
+    #   - v7
+    # paths-ignore:
+    #   - 'doc/**'
+    #   - '.github/**'
+    #   - '.gitpod.yml'
+    #   - 'README.md'
 
 permissions:
   contents: read
@@ -64,8 +67,9 @@ jobs:
         run: |
           set -ex
 
-          echo "Creating tarball"
-          tar -cvzf ../cf-cli.tgz .
+          echo "========================${{ github.workspace }}"
+          # echo "Creating tarball"
+          # tar -cvzf ../cf-cli.tgz .
 
       - name: 'Upload cli'
         uses: actions/upload-artifact@v3

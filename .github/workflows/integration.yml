@@ -2,8 +2,10 @@ name: Integration Tests
 
 on:
   workflow_run:
-    workflows: [Package CLI]
-    types: [completed]
+    workflows: 
+      - Package CLI1
+    types: 
+      - completed
 
 permissions:
   contents: read
