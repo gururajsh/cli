@@ -7,24 +7,24 @@ on:
       - opened
       - reopened
       - ready_for_review
-    # branches:
-    #   - main
-    #   - v8
-    #   - v7
-    # paths-ignore:
-    #   - 'doc/**'
-    #   - '.gitpod.yml'
-    #   - 'README.md'
-  # push:
-  #   branches:
-  #     - main
-  #     - v8
-  #     - v7
-  #   paths-ignore:
-  #     - 'doc/**'
-  #     - '.github/**'
-  #     - '.gitpod.yml'
-  #     - 'README.md'
+    branches:
+      - main
+      - v8
+      - v7
+    paths-ignore:
+      - 'doc/**'
+      - '.gitpod.yml'
+      - 'README.md'
+  push:
+    branches:
+      - main
+      - v8
+      - v7
+    paths-ignore:
+      - 'doc/**'
+      - '.github/**'
+      - '.gitpod.yml'
+      - 'README.md'
 
 permissions:
   contents: read
