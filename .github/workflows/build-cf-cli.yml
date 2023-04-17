@@ -12,15 +12,15 @@ on:
       - '.gitpod.yml'
       - 'README.md'
   push:
-    # branches:
-    #   - main
-    #   - v8
-    #   - v7
-    # paths-ignore:
-    #   - 'doc/**'
-    #   - '.github/**'
-    #   - '.gitpod.yml'
-    #   - 'README.md'
+    branches:
+      - main
+      - v8
+      - v7
+    paths-ignore:
+      - 'doc/**'
+      - '.github/**'
+      - '.gitpod.yml'
+      - 'README.md'
 
 permissions:
   contents: read
