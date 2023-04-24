@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	// . "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/ghttp"
@@ -44,7 +45,29 @@ func StartMockServerWithCustomAuthorizationEndpoint(authorizationPath string) *S
 }
 
 func startServerWithVersions(v2Version string, v3Version string, minimumCLIVersion *string, authorizationPath string) *Server {
+	// server := NewUnstartedServer()
+	// server.HTTPTestServer.TLS.InsecureSkipVerify = true
+	// server.HTTPTestServer.Config.TLSConfig.InsecureSkipVerify = true
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("TLSConfig ============================== ", server.HTTPTestServer.Config.TLSConfig)))
+	// server.HTTPTestServer.StartTLS()
+
 	server := NewTLSServer()
+
+	// client := server.HTTPTestServer.Client()
+	// config := server.HTTPTestServer.TLS
+	// config.InsecureSkipVerify = true
+	// res, _ := client.Get(server.URL())
+	// greeting, err := io.ReadAll(res.Body)
+	// res.Body.Close()
+
+	// fmt.Printf("%s", greeting)
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("greeting ============================== ", greeting)))
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("res.TLS.PeerCertificates ============================== ", res.TLS.PeerCertificates)))
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("res.TLS.VerifiedChains ============================== ", res.TLS.VerifiedChains)))
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("config ============================== ", config.InsecureSkipVerify)))
+
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("res ============================== ", res)))
+	// GinkgoWriter.Write([]byte(fmt.Sprintln("err ============================== ", err)))
 
 	rootResponse := fmt.Sprintf(`{
    "links": {

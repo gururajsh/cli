@@ -3,6 +3,7 @@ package isolated
 import (
 	"encoding/json"
 	"io/ioutil"
+
 	"net/http"
 	"os"
 	"os/exec"
@@ -139,14 +140,68 @@ var _ = Describe("api command", func() {
 			BeforeEach(func() {
 				cliVersion := "1.0.0"
 				server = helpers.StartMockServerWithMinimumCLIVersion(cliVersion)
+
+				// client1 := server.HTTPTestServer.Client()
+				// client := &http.Client{
+				// 	Transport: &http.Transport{
+				// 		TLSClientConfig: &tls.Config{
+				// 			InsecureSkipVerify: true, // test server certificate is not trusted.
+				// 		},
+				// 	},
+				// }
+				// client1 = client
+				// resp, err := client1.Get(server.URL())
+				// GinkgoWriter.Write([]byte(fmt.Sprintln("resp ============================== ", resp)))
+				// GinkgoWriter.Write([]byte(fmt.Sprintln("err ============================== ", err)))
+
+				// coreConfig := testconfig.NewRepository()
+				// gateway := net.NewCloudControllerGateway(coreConfig, time.Now, new(terminalfakes.FakeUI), new(tracefakes.FakePrinter), "")
+				// gateway.SetTrustedCerts(server.HTTPTestServer.TLS.Certificates)
+				// repo := NewEndpointRepository(gateway)
+
+				// cert := testnet.MakeSelfSignedTLSCert()
+
+				// cert, err := tls.X509KeyPair(testcert.LocalhostCert, testcert.LocalhostKey)
+				// server.TLS.Certificates = []tls.Certificate{cert}
+				// server.certificate, err = x509.ParseCertificate(server.HTTPTestServer.TLS.Certificates[0].Certificate[0])
+				// certpool := x509.NewCertPool()
+				// certpool.AddCert(server.HTTPTestServer.certificate)
+				// server.HTTPTestServer.Client().Transport = &http.Transport{
+				// 	TLSClientConfig: &tls.Config{
+				// 		RootCAs: certpool,
+				// 	},
+				// 	ForceAttemptHTTP2: s.EnableHTTP2,
+				// }
+
+				// server.HTTPTestServer.TLS.Certificates = []tls.Certificate{cert}
+
+				// var x509TrustedCerts []*x509.Certificate
+				// x509Cert, _ := x509.ParseCertificate(cert.Certificate[0])
+				// x509TrustedCerts = append(x509TrustedCerts, x509Cert)
+
+				// server.HTTPTestServer.Config.TLSConfig = util.NewTLSConfig(x509TrustedCerts, true)
+
+				// ts := &http.Transport{
+				// 	DisableKeepAlives: true,
+				// 	Dial: (&net.Dialer{
+				// 		KeepAlive: 30 * time.Second,
+				// 		Timeout:   5 * time.Second,
+				// 	}).Dial,
+				// 	TLSClientConfig: util.NewTLSConfig(x509TrustedCerts, false),
+				// 	Proxy:           http.ProxyFromEnvironment,
+				// }
+
 				apiURL = server.URL()
+				// GinkgoWriter.Write([]byte(fmt.Sprintln("apiURL ============================== ", apiURL)))
+				// server.HTTPTestServer.TLS.InsecureSkipVerify = true
+				// server.HTTPTestServer.Config.TLSConfig.InsecureSkipVerify = true
 			})
 
 			AfterEach(func() {
 				server.Close()
 			})
 
-			It("warns about skip SSL", func() {
+			FIt("warns about skip SSL", func() {
 				session := helpers.CF("api", apiURL)
 				Eventually(session).Should(Say("Setting API endpoint to %s...", apiURL))
 				Eventually(session.Err).Should(Say("x509: certificate has expired or is not yet valid|SSL Certificate Error x509: certificate is valid for|Invalid SSL Cert for %s", apiURL))

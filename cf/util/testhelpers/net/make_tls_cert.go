@@ -11,6 +11,8 @@ import (
 	"math/big"
 	"net"
 	"time"
+
+	. "github.com/onsi/ginkgo"
 )
 
 func MakeSelfSignedTLSCert() tls.Certificate {
@@ -30,6 +32,8 @@ func MakeUnauthorizedTLSCert() tls.Certificate {
 }
 
 func generateCert(hosts []string, notAfter time.Time, isAuthorizedToSign bool) tls.Certificate {
+	GinkgoWriter.Write([]byte("generateCert ============================== "))
+
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		panic(err)
