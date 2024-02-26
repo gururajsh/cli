@@ -28,7 +28,7 @@ var mutex sync.Mutex
 func ensureAppIsDeployed() {
 	if !appResponds() {
 		ensureAppIsPushed()
-		Eventually(appResponds).Should(BeTrue())
+		Eventually(appResponds()).Should(BeTrue())
 	}
 }
 

@@ -58,7 +58,7 @@ var _ = Describe("buildpacks command", func() {
 			positionRegex := `\d+`
 			enabledRegex := `true`
 			lockedRegex := `false`
-			stackRegex := `(cflinuxfs[23]|windows.+)`
+			stackRegex := `(cflinuxfs[234]|windows.+)`
 			stateRegex := `READY`
 
 			staticfileNameRegex := `staticfile_buildpack`

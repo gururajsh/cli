@@ -16,10 +16,10 @@ REQUIRED_FOR_STATIC_BINARY =-a -tags "netgo" -installsuffix netgo
 GOSRC = $(shell find . -name "*.go" ! -name "*test.go" ! -name "*fake*" ! -path "./integration/*")
 UNAME_S := $(shell uname -s)
 
-SLOW_SPEC_THRESHOLD=120
+POLL_PROGRESS_THRESHOLD=120s
 
-GINKGO_FLAGS ?= -r -randomize-all -require-suite
-GINKGO_INT_FLAGS = $(GINKGO_FLAGS) -slowSpecThreshold $(SLOW_SPEC_THRESHOLD)
+GINKGO_FLAGS ?= -r -randomize-all -require-suite -vv
+GINKGO_INT_FLAGS = $(GINKGO_FLAGS) --poll-progress-after $(POLL_PROGRESS_THRESHOLD)
 ginkgo_int = ginkgo $(GINKGO_INT_FLAGS)
 
 GINKGO_UNITS_FLAGS = $(GINKGO_FLAGS) -randomize-suites

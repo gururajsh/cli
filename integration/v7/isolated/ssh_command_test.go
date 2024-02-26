@@ -283,7 +283,7 @@ var _ = Describe("ssh command", func() {
 				var port int
 
 				BeforeEach(func() {
-					port = 55500 + GinkgoParallelNode()
+					port = 55500 + GinkgoParallelProcess()
 				})
 
 				It("configures local port to connect to the app port", func() {
