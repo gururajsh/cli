@@ -3,6 +3,9 @@ name: "Tests: Integration"
 run-name: "Integration [${{ github.event.workflow_run.head_branch }}]: ${{ github.event.workflow_run.head_commit.message }}"
 
 on:
+  push:
+    branches: 
+      - ginkgo2
   workflow_dispatch:
   workflow_run:
     workflows:
