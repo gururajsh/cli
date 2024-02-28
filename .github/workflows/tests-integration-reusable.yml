@@ -112,7 +112,9 @@ jobs:
           sleep 30
         done
         cat metadata.json | jq -r '.name'
-
+    - name: Setup tmate session
+      if: always()
+      uses: mxschmitt/action-tmate@v3
     - name: Install Tools
       run: |
         if [[ ${{ inputs.os }} =~ "windows" ]]
