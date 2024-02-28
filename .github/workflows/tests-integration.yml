@@ -3,15 +3,15 @@ name: "Tests: Integration"
 run-name: "Integration [${{ github.event.workflow_run.head_branch }}]: ${{ github.event.workflow_run.head_commit.message }}"
 
 on:
+  workflow_dispatch:
   push:
     branches: 
       - ginkgo2
-  workflow_dispatch:
   workflow_run:
-    workflows:
-      - "Tests"
-    types:
-      - completed
+  #   workflows:
+  #     - "Tests"
+  #   types:
+  #     - completed
 
 jobs: 
   run-integration-tests-cf-env:
