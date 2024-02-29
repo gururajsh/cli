@@ -18,7 +18,7 @@ UNAME_S := $(shell uname -s)
 
 POLL_PROGRESS_THRESHOLD=120s
 
-GINKGO_FLAGS ?= -r -randomize-all -require-suite -vv
+GINKGO_FLAGS ?= -r -randomize-all -require-suite
 GINKGO_INT_FLAGS = $(GINKGO_FLAGS) --poll-progress-after $(POLL_PROGRESS_THRESHOLD)
 ginkgo_int = ginkgo $(GINKGO_INT_FLAGS)
 
