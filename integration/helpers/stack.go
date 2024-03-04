@@ -37,12 +37,12 @@ func FetchStacks() []string {
 	return stacks
 }
 
-// PreferredStack returns the cflinuxfs4 stack name if it present, otherwise cflinuxfs2 is returned.
+// PreferredStack returns the cflinuxfs3 stack name if it present, otherwise cflinuxfs2 is returned.
 func PreferredStack() string {
 	stacks := FetchStacks()
 
 	for _, name := range stacks {
-		if name == "cflinuxfs4" {
+		if name == "cflinuxfs3" {
 			return name
 		}
 	}

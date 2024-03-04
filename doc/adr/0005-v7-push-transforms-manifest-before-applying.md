@@ -49,7 +49,7 @@ Updating app with these attributes...
 + instances:           3
   memory:
 
-  stack:               cflinuxfs4
+  stack:               cflinuxfs3
   routes:
     dora.sheer-shark.lite.cli.fun
 ```
