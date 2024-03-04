@@ -178,13 +178,13 @@ buildpacks:
 		Context("when stack is provided", func() {
 			BeforeEach(func() {
 				rawYAML = []byte(`---
-stack: cflinuxfs4
+stack: cflinuxfs3
 `)
 			})
 
 			It("unmarshals the stack property", func() {
 				Expect(executeErr).ToNot(HaveOccurred())
-				Expect(application.Stack).To(Equal("cflinuxfs4"))
+				Expect(application.Stack).To(Equal("cflinuxfs3"))
 			})
 		})
 
