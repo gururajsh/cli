@@ -133,7 +133,7 @@ var _ = Describe("scale command", func() {
 
 					instanceSummary := processSummary.Instances[0]
 					Expect(instanceSummary.Memory).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of \d+?[BKMG]?`))
-					Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[KMG]? of \d+?[KMG]?`))
+					Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of \d+?[BKMG]?`))
 
 					Expect(appTable.Processes[1].Type).To(Equal("console"))
 					Expect(appTable.Processes[1].InstanceCount).To(Equal("0/0"))
@@ -174,7 +174,7 @@ var _ = Describe("scale command", func() {
 						instanceSummary := processSummary.Instances[0]
 						Expect(processSummary.Type).To(Equal("web"))
 						Expect(processSummary.InstanceCount).To(MatchRegexp(`\d/3`))
-						Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[KMG]? of \d+[KMG]`))
+						Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of \d+[BKMG]`))
 						Expect(instanceSummary.Memory).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of \d+[BKMG]`))
 					})
 				})
@@ -329,7 +329,7 @@ var _ = Describe("scale command", func() {
 						Expect(processSummary.InstanceCount).To(MatchRegexp(`\d/2`))
 						Expect(instanceSummary.State).To(MatchRegexp(`running|starting`))
 						Expect(instanceSummary.Memory).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of 60M`))
-						Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[KMG]? of 512M`))
+						Expect(instanceSummary.Disk).To(MatchRegexp(`\d+(\.\d+)?[BKMG]? of 512M`))
 					})
 				})
 
@@ -403,7 +403,7 @@ var _ = Describe("scale command", func() {
 					Expect(newProcessSummary.Type).To(Equal("web"))
 					Expect(newProcessSummary.InstanceCount).To(MatchRegexp(fmt.Sprintf(`\d/%s`, currentInstances)))
 					Expect(newInstanceSummary.Memory).To(MatchRegexp(fmt.Sprintf(`\d+(\.\d+)?[BKMG]? of %s`, maxMemory)))
-					Expect(newInstanceSummary.Disk).To(MatchRegexp(fmt.Sprintf(`\d+(\.\d+)?[KMG]? of %s`, maxDiskSize)))
+					Expect(newInstanceSummary.Disk).To(MatchRegexp(fmt.Sprintf(`\d+(\.\d+)?[BKMG]? of %s`, maxDiskSize)))
 				})
 			})
 
