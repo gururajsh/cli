@@ -30,7 +30,7 @@ jobs:
       run:
         shell: bash
     runs-on: ${{ inputs.os }} 
-
+    container: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource:latest
     steps:
     # - uses: LouisBrunner/checks-action@v2.0.0
     #   if: always()
