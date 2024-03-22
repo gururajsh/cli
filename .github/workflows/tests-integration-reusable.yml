@@ -94,7 +94,7 @@ jobs:
         # Give somtime for the lease to complete. Shepherd may take upto an hour to create an env
         # if the pool is empty.
         count=0
-        while [ count -lt 120 ] ; do
+        while [ $count -lt 120 ] ; do
           sleep 30
           status=$(shepherd get lease ${lease_id} --json | jq .status)
           if [ $status == "LEASED" ] ; then
@@ -300,7 +300,10 @@ jobs:
 
     - name: Unclaim environment
       if: always()
+      env:
+        account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
       run: |
+        shepherd login service-account ${account_token}
         shepherd delete lease ${{ steps.claim-env.outputs.lease-id }}
     # - uses: LouisBrunner/checks-action@v2.0.0
     #   if: always()
