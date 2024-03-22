@@ -3,8 +3,8 @@
 # secrets.CLIENT_SECRET
 # secrets.GITHUB_TOKEN
 # secrets.TOOLSMITHS_API_TOKEN
-# vars.TOOLSMITHS_HOSTNAME
-# vars.TOOLSMITHS_POOL_NAME
+# secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN
+# vars.SHEPHERD_POOL_NAME
 
 name: "pvt: run integration tests"
 
@@ -32,16 +32,16 @@ jobs:
     runs-on: ${{ inputs.os }} 
 
     steps:
-    - uses: LouisBrunner/checks-action@v2.0.0
-      if: always()
-      id: check
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: "${{ inputs.name }}"
-        status: in_progress
-        sha:  ${{github.event.workflow_run.head_sha}}
-        output: |
-          {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+    # - uses: LouisBrunner/checks-action@v2.0.0
+    #   if: always()
+    #   id: check
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     name: "${{ inputs.name }}"
+    #     status: in_progress
+    #     sha:  ${{github.event.workflow_run.head_sha}}
+    #     output: |
+    #       {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
     - name: Checkout cli
       uses: actions/checkout@v4
       with:
@@ -80,38 +80,49 @@ jobs:
         repository: cloudfoundry/cf-deployment-concourse-tasks
         path: cf-deployment-concourse-tasks
 
-    - id: claim-toolsmiths-env
-      name: Claim Toolsmiths Environment
+    - id: claim-env
+      name: Claim Environment
       env:
-        api_token: ${{ secrets.TOOLSMITHS_API_TOKEN }}
-        hostname:  ${{ vars.TOOLSMITHS_HOSTNAME }}
-        notes:     "GHA CF CLI Integration Tests ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-        pool_name: ${{ vars.TOOLSMITHS_POOL_NAME }}
+        account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
+        pool_name: ${{ vars.SHEPHERD_POOL_NAME }}
       run: |
-        while true; do
-          curl -s --show-error -D headers.txt -H 'Accept: application/json' \
-          -X POST "https://${hostname}/pooled_gcp_engineering_environments/claim" \
-          --data-urlencode "api_token=${api_token}" \
-          --data-urlencode "pool_name=${pool_name}" \
-          --data-urlencode "notes=${notes}" > metadata.json \
-          || echo "Unable to reach server, trying again in 30 seconds..."
-
-          cat headers.txt
-
-          ERR_500="Sorry, the Toolsmiths Environments app is currently encountering issues. Trying again in 30 seconds..."
-          ERR_429="Sorry, Toolsmiths are out of environments in your requested pool. New environments are on their way but you can stop by the Toolsmiths slack channel for more help."
-          ERR_409="Sorry, was not able to claim an environment. Trying again in 30 seconds..."
-
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 401" headers.txt && exit 1
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 404" headers.txt && exit 2
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 500" headers.txt && echo "$ERR_500"
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 200" headers.txt && break
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 429" && echo "$ERR_429"
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 409" && echo "$ERR_409"
-
+        shepherd login service-account ${account_token}
+        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
+        
+        # Give somtime for the lease to complete. Shepherd may take upto an hour to create an env
+        # if the pool is empty.
+        count=0
+        while [ count -lt 120 ] ; do
           sleep 30
+          status=$(shepherd get lease ${lease_id} --json | jq .status)
+          if [ $status == "LEASED" ] ; then
+            shepherd get lease ${lease_id} --json | jq .output > metadata.json
+            break
+          elif [ $status == "FAILED" -o $status == "EXPIRED" ] ; then
+            echo "There was an error obtaining the lease. Lease status is ${status}."
+            exit 1
+          fi
+          count=$(($count+1))
         done
+
+        env_name=$(jq -r .name metadata.json)
         cat metadata.json | jq -r '.name'
+        echo "lease-id=${lease_id}" >> "${GITHUB_OUTPUT}"
+
+        # export CREDHUB_PROXY=$(jq -r .bosh.bosh_all_proxy metadata.json)
+        # export BOSH_CLIENT=$(jq -r .bosh.bosh_client metadata.json)
+        # export BOSH_CLIENT_SECRET=$(jq -r .bosh.bosh_client_secret metadata.json)
+        # export BOSH_CA_CERT=$(jq -r .bosh.bosh_ca_cert metadata.json)
+        # export CREDHUB_CLIENT=$(jq -r .bosh.credhub_client metadata.json)
+        # export CREDHUB_SERVER=$(jq -r .bosh.credhub_server metadata.json)
+        # export CREDHUB_CA_CERT=$(jq -r .bosh.credhub_ca_cert metadata.json)
+        # export BOSH_ALL_PROXY=$(jq -r .bosh.bosh_all_proxy metadata.json)
+        # export BOSH_ENVIRONMENT=$(jq -r .bosh.bosh_environment metadata.json)
+        # export CREDHUB_SECRET=$(jq -r .bosh.credhub_secret metadata.json)
+
+        # jq -r .bosh.jumpbox_private_key metadata.json > ${env_name}.priv
+        # export JUMPBOX_PRIVATE_KEY=${env_name}.priv
+        # export BOSH_DEPLOYMENT=cf
     
     - name: Install Tools
       run: |
@@ -146,6 +157,8 @@ jobs:
       env:
         CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       run: |
+        env_name=$(jq -r .name metadata.json)
+        jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${env_name}.priv
         eval "$(bbl print-env --metadata-file metadata.json)"
 
         # deploy
@@ -182,6 +195,8 @@ jobs:
         cp cli-ci/ci/infrastructure/operations/use-latest-ruby-buildpack.yml ops-files/
 
         # Deletes CF-D
+        env_name=$(jq -r .name metadata.json)
+        jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${env_name}.priv
         eval "$(bbl print-env --metadata-file metadata.json)"
         bosh -d cf delete-deployment -n
 
@@ -225,6 +240,7 @@ jobs:
       if: ${{ !inputs.run-with-client-creds }}
       run: |
         ENV=$(cat metadata.json | jq -r '.name')
+        jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${ENV}.priv
         eval "$(bbl print-env --metadata-file ./metadata.json)"
         export CF_INT_PASSWORD="$(credhub get -n /bosh-$ENV/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
@@ -255,6 +271,7 @@ jobs:
         CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       run: |
         ENV=$(cat metadata.json | jq -r '.name')
+        jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${ENV}.priv
         eval "$(bbl print-env --metadata-file ./metadata.json)"
         export CF_INT_PASSWORD="$(credhub get -n /bosh-$ENV/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
@@ -281,32 +298,14 @@ jobs:
 
     - name: Unclaim environment
       if: always()
-      env:
-        api_token: ${{ secrets.TOOLSMITHS_API_TOKEN }}
-        hostname:  ${{ vars.TOOLSMITHS_HOSTNAME }}
       run: |
-        ENV=$(cat metadata.json | jq -r '.name')
-        while true; do
-          output=$(curl -s --show-error -D headers.txt -H 'Accept: application/json' \
-          -X POST "https://${hostname}/pooled_gcp_engineering_environments/unclaim" \
-          --data-urlencode "api_token=${api_token}" \
-          --data-urlencode "name=${ENV}")
-
-          cat headers.txt
-
-          ERR_500="Sorry, the Toolsmiths Environments app is currently encountering issues. Trying again in 30 seconds..."
-
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 500" headers.txt && echo "$ERR_500" && sleep 30 && continue
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 401" headers.txt && echo $(echo "$output" | jq '.messages | join(", ")') && exit 1
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 404" headers.txt && echo $(echo "$output" | jq '.messages | join(", ")') && exit 2
-          grep -q -E "HTTP/[[:digit:]\.]{1,3} 202" headers.txt && break
-        done
-    - uses: LouisBrunner/checks-action@v2.0.0
-      if: always()
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        check_id: ${{ steps.check.outputs.check_id }}
-        conclusion: ${{ job.status }}
-        sha:  ${{github.event.workflow_run.head_sha}}
-        output: |
-          {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+        shepherd delete lease ${{ steps.claim-env.outputs.lease-id }}
+    # - uses: LouisBrunner/checks-action@v2.0.0
+    #   if: always()
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     check_id: ${{ steps.check.outputs.check_id }}
+    #     conclusion: ${{ job.status }}
+    #     sha:  ${{github.event.workflow_run.head_sha}}
+    #     output: |
+    #       {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
