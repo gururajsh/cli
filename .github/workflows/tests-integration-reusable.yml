@@ -97,9 +97,9 @@ jobs:
         count=0
         while [ $count -lt 120 ] ; do
           sleep 30
-          status=$(shepherd get lease ${lease_id} --json | jq .status)
+          status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq .status)
           if [ $status == "LEASED" ] ; then
-            shepherd get lease ${lease_id} --json | jq .output > metadata.json
+            shepherd get lease ${lease_id} --namespace tas-devex --json | jq .output > metadata.json
             break
           elif [ $status == "FAILED" -o $status == "EXPIRED" ] ; then
             echo "There was an error obtaining the lease. Lease status is ${status}."
@@ -305,7 +305,7 @@ jobs:
         account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
       run: |
         shepherd login service-account ${account_token}
-        shepherd delete lease ${{ steps.claim-env.outputs.lease-id }}
+        shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
     # - uses: LouisBrunner/checks-action@v2.0.0
     #   if: always()
     #   with:
