@@ -56,6 +56,8 @@ jobs:
     - id: read-min-capi
       name: Read MIN CAPI
       run: |
+        wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&\
+        chmod +x /usr/bin/yq
         version=$(yq '.capi-version-min' build_data.yml)
         echo "version=$version" >> $GITHUB_OUTPUT
 
