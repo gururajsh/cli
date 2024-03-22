@@ -97,7 +97,7 @@ jobs:
         count=0
         while [ $count -lt 120 ] ; do
           sleep 30
-          status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq .status)
+          status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq -r .status)
           if [ $status == "LEASED" ] ; then
             shepherd get lease ${lease_id} --namespace tas-devex --json | jq .output > metadata.json
             break
