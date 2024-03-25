@@ -155,8 +155,8 @@ jobs:
         chmod +x $install_location/credhub
         credhub --version
 
-        sudo apt-get update
-        sudo apt-get install build-essential
+        apt-get update
+        apt-get install build-essential
 
 
     - name: Deploy Isolation Segment and OIDC Provider
