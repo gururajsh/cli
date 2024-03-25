@@ -156,7 +156,7 @@ jobs:
         credhub --version
 
         apt-get update
-        apt-get install build-essential
+        apt-get install -y build-essential
 
 
     - name: Deploy Isolation Segment and OIDC Provider
