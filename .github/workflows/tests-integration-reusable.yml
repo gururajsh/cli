@@ -95,7 +95,7 @@ jobs:
         # Give somtime for the lease to complete. Shepherd may take upto an hour to create an env
         # if the pool is empty.
         count=0
-        while [ $count -lt 120 ] ; do
+        while [ $count -lt 240 ] ; do
           sleep 30
           status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq -r .status)
           if [ $status == "LEASED" ] ; then
@@ -110,7 +110,7 @@ jobs:
 
         env_name=$(jq -r .name metadata.json)
         cat metadata.json | jq -r '.name'
-        echo "lease-id=${lease_id}" >> "${GITHUB_OUTPUT}"
+        echo "lease-id=$lease_id" >> "${GITHUB_OUTPUT}"
 
         # export CREDHUB_PROXY=$(jq -r .bosh.bosh_all_proxy metadata.json)
         # export BOSH_CLIENT=$(jq -r .bosh.bosh_client metadata.json)
@@ -305,6 +305,7 @@ jobs:
         account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
       run: |
         shepherd login service-account ${account_token}
+        set -x
         shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
     # - uses: LouisBrunner/checks-action@v2.0.0
     #   if: always()
