@@ -250,7 +250,8 @@ jobs:
         export CF_INT_PASSWORD="$(credhub get -n /bosh-$ENV/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
         export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-$ENV/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        export CF_INT_API="https://api.${ENV}.cf-app.com"
+        API_URL="$(jq -r .cf.api_url metadata.json)"
+        export CF_INT_API="https://$API_URL"
         export CF_DIAL_TIMEOUT=15
         export CF_USERNAME=admin
         export FLAKE_ATTEMPTS=2
