@@ -182,6 +182,9 @@ jobs:
         echo "Deployed CAPI version:"
         bosh -d cf releases | grep capi
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: Deploy MIN CAPI with Isolation Segment and OIDC Provider
       if: ${{ inputs.capi-version != 'edge' }}
       run: |
