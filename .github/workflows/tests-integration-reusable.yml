@@ -158,12 +158,12 @@ jobs:
         apt-get update
         apt-get install -y build-essential
 
-
     - name: Deploy Isolation Segment and OIDC Provider
       if: ${{ inputs.capi-version == 'edge' }}
       env:
         CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       run: |
+        set -x
         env_name=$(jq -r .name metadata.json)
         jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${env_name}.priv
         eval "$(bbl print-env --metadata-file metadata.json)"
