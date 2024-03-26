@@ -183,6 +183,7 @@ jobs:
         bosh -d cf releases | grep capi
 
     - name: Setup tmate session
+      if: always()
       uses: mxschmitt/action-tmate@v3
 
     - name: Deploy MIN CAPI with Isolation Segment and OIDC Provider
