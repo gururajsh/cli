@@ -306,7 +306,6 @@ jobs:
 
         make integration-tests-full-ci
 
-
     - name: Unclaim environment
       if: always()
       env:

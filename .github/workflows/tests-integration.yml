@@ -35,7 +35,7 @@ jobs:
 
   run-integration-tests-cf-env-with-min-capi:
     name: MIN CAPI
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       capi-version: min
