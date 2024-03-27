@@ -90,11 +90,11 @@ jobs:
       run: |
         shepherd login service-account ${account_token}
         lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
-        # lease_id=${{ secrets.LEASE_ID }}
-        # Give somtime for the lease to complete. Shepherd may take upto an hour to create an env
+        
+        # Give somtime for the lease to complete. Shepherd may take upto an 3 hours to create an env
         # if the pool is empty.
         count=0
-        while [ $count -lt 480 ] ; do
+        while [ $count -lt 360 ] ; do
           sleep 30
           status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq -r .status)
           if [ $status == "LEASED" ] ; then
