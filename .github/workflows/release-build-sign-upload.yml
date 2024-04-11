@@ -87,10 +87,12 @@ jobs:
         team_slug: wg-app-runtime-interfaces-cli-approvers
         token: ${{ secrets.GITHUB_TOKEN }}
     
-    - run: "echo ${{ steps.get-members.outputs.members }}"
+    - name: List members
+      run: "echo ${{ steps.get-members.outputs.members }}"
       shell: bash
 
-    - if: steps.get-members.outputs.actor-belongs-team != 'true'
+    - name: Check if a member
+      if: steps.get-members.outputs.actor-belongs-team != 'true'
       shell: bash
       run: |
         echo "${{ github.actor }} does not have the permission to trigger this workflow"
