@@ -87,6 +87,9 @@ jobs:
         team_slug: wg-app-runtime-interfaces-cli-approvers
         token: ${{ secrets.GITHUB_TOKEN }}
     
+    - run: "echo ${{ steps.get-members.outputs.members }}"
+      shell: bash
+
     - if: steps.get-members.outputs.actor-belongs-team != 'true'
       shell: bash
       run: |
@@ -95,6 +98,7 @@ jobs:
 
   setup:
     name: Setup
+    needs: verify
     runs-on: ubuntu-latest
 
     outputs:
