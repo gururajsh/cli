@@ -85,7 +85,7 @@ jobs:
       with:
         org_slug: cloudfoundry
         team_slug: wg-app-runtime-interfaces-cli-approvers
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ github.token }}
     
     - name: List members
       run: echo ${{ steps.get-members.outputs.members }}
