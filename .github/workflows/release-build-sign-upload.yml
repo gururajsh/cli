@@ -78,7 +78,7 @@ jobs:
 
   setup:
     name: Setup
-    if: github.triggering_actor.role == 'Write'
+    # if: github.triggering_actor.role == 'Write'
     runs-on: ubuntu-latest
 
     outputs:
@@ -95,6 +95,8 @@ jobs:
 
     - name: Check if VERSION_BUILD matches tag ${{ github.ref }}
       run: |
+
+        echo "actor role ============= ${{ github.triggering_actor.role }}"
         echo "Git Ref: ${{ github.ref }}"
         echo "VERSION_BUILD: $(cat BUILD_VERSION)"
 
