@@ -88,13 +88,13 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: List members
-      run: "echo ${{ steps.get-members.outputs.members }}"
+      run: echo ${{ steps.get-members.outputs.members }}
 
-    # - name: Check if a member
-    #   if: steps.get-members.outputs.actor-belongs-team != 'true'
-    #   run: |
-    #     echo "${{ github.actor }} does not have the permission to trigger this workflow"
-    #     exit 1
+    - name: Check if a member
+      if: steps.get-members.outputs.actor-belongs-team != 'true'
+      run: |
+        echo "${{ github.actor }} does not have the permission to trigger this workflow"
+        exit 1
 
   setup:
     name: Setup
