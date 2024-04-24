@@ -89,24 +89,26 @@ jobs:
         pool_name: ${{ vars.SHEPHERD_POOL_NAME }}
       run: |
         shepherd login service-account ${account_token}
-        # lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
-        lease_id="32ce319e-c5e6-41f5-bde3-19b1bbeb32d9"
-        shepherd get lease ${lease_id} --namespace gururajsh --json | jq .output > metadata.json
+        pool_name="tas-2_11"
+        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
+        # lease_id="32ce319e-c5e6-41f5-bde3-19b1bbeb32d9"
+        # shepherd get lease ${lease_id} --namespace gururajsh --json | jq .output > metadata.json
+
         # Give somtime for the lease to complete. Shepherd may take upto an 3 hours to create an env
         # if the pool is empty.
-        # count=0
-        # while [ $count -lt 360 ] ; do
-        #   sleep 30
-        #   status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq -r .status)
-        #   if [ $status == "LEASED" ] ; then
-        #     shepherd get lease ${lease_id} --namespace tas-devex --json | jq .output > metadata.json
-        #     break
-        #   elif [ $status == "FAILED" -o $status == "EXPIRED" ] ; then
-        #     echo "There was an error obtaining the lease. Lease status is ${status}."
-        #     exit 1
-        #   fi
-        #   count=$(($count+1))
-        # done
+        count=0
+        while [ $count -lt 360 ] ; do
+          sleep 30
+          status=$(shepherd get lease ${lease_id} --namespace tas-devex --json | jq -r .status)
+          if [ $status == "LEASED" ] ; then
+            shepherd get lease ${lease_id} --namespace tas-devex --json | jq .output > metadata.json
+            break
+          elif [ $status == "FAILED" -o $status == "EXPIRED" ] ; then
+            echo "There was an error obtaining the lease. Lease status is ${status}."
+            exit 1
+          fi
+          count=$(($count+1))
+        done
 
         env_name=$(jq -r .name metadata.json)
         cat metadata.json | jq -r '.name'
