@@ -240,9 +240,9 @@ jobs:
                           use-latest-ruby-buildpack.yml"
         ./cf-deployment-concourse-tasks/bosh-deploy/task
 
-    - name: Setup tmate session
-      if: always()
-      uses: mxschmitt/action-tmate@v3
+    # - name: Setup tmate session
+    #   if: always()
+    #   uses: mxschmitt/action-tmate@v3
 
     - name: Set Up Go
       uses: actions/setup-go@v5
