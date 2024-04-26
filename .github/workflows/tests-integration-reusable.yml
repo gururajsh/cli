@@ -32,16 +32,17 @@ jobs:
     runs-on: ${{ inputs.os }} 
     container: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource:latest
     steps:
-    # - uses: LouisBrunner/checks-action@v2.0.0
-    #   if: always()
-    #   id: check
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     name: "${{ inputs.name }}"
-    #     status: in_progress
-    #     sha:  ${{github.event.workflow_run.head_sha}}
-    #     output: |
-    #       {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+    - uses: LouisBrunner/checks-action@v2.0.0
+      if: always()
+      id: check
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: "${{ inputs.name }}"
+        status: in_progress
+        sha:  ${{github.event.workflow_run.head_sha}}
+        output: |
+          {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+    
     - name: Checkout cli
       uses: actions/checkout@v4
       with:
@@ -89,7 +90,7 @@ jobs:
         pool_name: ${{ vars.SHEPHERD_POOL_NAME }}
       run: |
         shepherd login service-account ${account_token}
-        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace tas-devex --namespace tas-devex --json | jq -r .id) 
+        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
 
         # Give somtime for the lease to complete. Shepherd may take upto an 3 hours to create an env
         # if the pool is empty.
@@ -112,21 +113,6 @@ jobs:
         env_name=$(jq -r .name metadata.json)
         cat metadata.json | jq -r '.name'
         echo "lease-id=$lease_id" >> "${GITHUB_OUTPUT}"
-
-        # export CREDHUB_PROXY=$(jq -r .bosh.bosh_all_proxy metadata.json)
-        # export BOSH_CLIENT=$(jq -r .bosh.bosh_client metadata.json)
-        # export BOSH_CLIENT_SECRET=$(jq -r .bosh.bosh_client_secret metadata.json)
-        # export BOSH_CA_CERT=$(jq -r .bosh.bosh_ca_cert metadata.json)
-        # export CREDHUB_CLIENT=$(jq -r .bosh.credhub_client metadata.json)
-        # export CREDHUB_SERVER=$(jq -r .bosh.credhub_server metadata.json)
-        # export CREDHUB_CA_CERT=$(jq -r .bosh.credhub_ca_cert metadata.json)
-        # export BOSH_ALL_PROXY=$(jq -r .bosh.bosh_all_proxy metadata.json)
-        # export BOSH_ENVIRONMENT=$(jq -r .bosh.bosh_environment metadata.json)
-        # export CREDHUB_SECRET=$(jq -r .bosh.credhub_secret metadata.json)
-
-        # jq -r .bosh.jumpbox_private_key metadata.json > ${env_name}.priv
-        # export JUMPBOX_PRIVATE_KEY=${env_name}.priv
-        # export BOSH_DEPLOYMENT=cf
     
     - name: Install Tools
       run: |
@@ -237,10 +223,6 @@ jobs:
                           use-latest-ruby-buildpack.yml"
         ./cf-deployment-concourse-tasks/bosh-deploy/task
 
-    # - name: Setup tmate session
-    #   if: always()
-    #   uses: mxschmitt/action-tmate@v3
-
     - name: Set Up Go
       uses: actions/setup-go@v5
       with:
@@ -316,12 +298,13 @@ jobs:
         shepherd login service-account ${account_token}
         set -x
         # shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
-    # - uses: LouisBrunner/checks-action@v2.0.0
-    #   if: always()
-    #   with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     check_id: ${{ steps.check.outputs.check_id }}
-    #     conclusion: ${{ job.status }}
-    #     sha:  ${{github.event.workflow_run.head_sha}}
-    #     output: |
-    #       {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+        
+    - uses: LouisBrunner/checks-action@v2.0.0
+      if: always()
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        check_id: ${{ steps.check.outputs.check_id }}
+        conclusion: ${{ job.status }}
+        sha:  ${{github.event.workflow_run.head_sha}}
+        output: |
+          {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
