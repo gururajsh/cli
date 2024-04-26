@@ -297,7 +297,7 @@ jobs:
       run: |
         shepherd login service-account ${account_token}
         set -x
-        # shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
+        shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
         
     - uses: LouisBrunner/checks-action@v2.0.0
       if: always()
