@@ -7,8 +7,6 @@ on:
       - "v9.*"
       - "v8.*"
       - "v7.*"
-    branches:
-      - "*"
   pull_request:
     branches:
       - main
