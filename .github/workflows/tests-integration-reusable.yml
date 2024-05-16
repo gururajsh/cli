@@ -31,16 +31,16 @@ jobs:
     runs-on: ${{ inputs.os }} 
     container: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource:latest
     steps:
-    - uses: LouisBrunner/checks-action@v2.0.0
-      if: always()
-      id: check
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: "${{ inputs.name }}"
-        status: in_progress
-        sha:  ${{github.event.workflow_run.head_sha}}
-        output: |
-          {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+    # - uses: LouisBrunner/checks-action@v2.0.0
+    #   if: always()
+    #   id: check
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     name: "${{ inputs.name }}"
+    #     status: in_progress
+    #     sha:  ${{github.event.workflow_run.head_sha}}
+    #     output: |
+    #       {"title": "${{ inputs.name }}", "summary":"started ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
     
     - name: Checkout cli
       uses: actions/checkout@v4
@@ -156,12 +156,14 @@ jobs:
         # deploy
         bosh -d cf manifest > /tmp/manifest.yml
         bosh interpolate /tmp/manifest.yml \
-          -o cf-deployment/operations/add-persistent-isolation-segment-diego-cell.yml \
-          -o cli-ci/ci/infrastructure/operations/add-oidc-provider.yml \
-          -o cli-ci/ci/infrastructure/operations/add-uaa-client-credentials.yml \
-          -o cli-ci/ci/infrastructure/operations/diego-cell-instances.yml \
-          -v client-secret="${CF_INT_CLIENT_SECRET}" \
+          -o .github/ops-files/use-cflinuxfs3.yml \
           > ./director.yml
+
+          # -o cf-deployment/operations/add-persistent-isolation-segment-diego-cell.yml \
+          # -o cli-ci/ci/infrastructure/operations/add-oidc-provider.yml \
+          # -o cli-ci/ci/infrastructure/operations/add-uaa-client-credentials.yml \
+          # -o cli-ci/ci/infrastructure/operations/diego-cell-instances.yml \
+          # -v client-secret="${CF_INT_CLIENT_SECRET}" \
 
         bosh -d cf deploy director.yml -n
         echo "Deployed CAPI version:"
@@ -289,21 +291,21 @@ jobs:
 
         make integration-tests-full-ci
 
-    - name: Unclaim environment
-      if: always()
-      env:
-        account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
-      run: |
-        shepherd login service-account ${account_token}
-        set -x
-        shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
+    # - name: Unclaim environment
+    #   if: always()
+    #   env:
+    #     account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
+    #   run: |
+    #     shepherd login service-account ${account_token}
+    #     set -x
+    #     shepherd delete lease ${{ steps.claim-env.outputs.lease-id }} --namespace tas-devex
         
-    - uses: LouisBrunner/checks-action@v2.0.0
-      if: always()
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        check_id: ${{ steps.check.outputs.check_id }}
-        conclusion: ${{ job.status }}
-        sha:  ${{github.event.workflow_run.head_sha}}
-        output: |
-          {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
+    # - uses: LouisBrunner/checks-action@v2.0.0
+    #   if: always()
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     check_id: ${{ steps.check.outputs.check_id }}
+    #     conclusion: ${{ job.status }}
+    #     sha:  ${{github.event.workflow_run.head_sha}}
+    #     output: |
+    #       {"title": "${{ inputs.name }}", "summary":"finished ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}
