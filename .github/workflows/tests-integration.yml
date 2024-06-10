@@ -13,6 +13,7 @@ on:
           - run-integration-tests-cf-env
           - run-integration-tests-cf-env-with-client-creds
           - run-integration-tests-cf-env-with-min-capi
+          - run-cats-cf-env
           # - run-integration-windows
           # - run-integration-windows-client-credentials
   workflow_run:
@@ -23,7 +24,7 @@ on:
     branches:
       - main
 
-jobs: 
+jobs:
   run-integration-tests-cf-env:
     name: Integration tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-tests-cf-env') || github.event.workflow_run.conclusion == 'success' }}
@@ -58,9 +59,22 @@ jobs:
       os: ubuntu-latest
       name: Integration MIN CAPI
       pool-name: cfd_16_11_0
+      pool-namespace: tas-devex
       is-pr: ${{ github.event_name != 'workflow_dispatch' }}
     secrets: inherit
 
+  run-cats-cf-env:
+    name: CATS
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-cats-cf-env') || github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/tests-integration-reusable.yml
+    with:
+      capi-version: edge
+      run-with-client-creds: false
+      os: ubuntu-latest
+      name: cats
+      is-pr: ${{ github.event_name != 'workflow_dispatch' }}
+    secrets: inherit
+  
   #run-integration-windows:
   #  name: Windows
   #  if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-windows') || github.event.workflow_run.conclusion == 'success' }}
