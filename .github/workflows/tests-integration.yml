@@ -4,13 +4,25 @@ run-name: "Integration [${{ github.event.workflow_run.head_branch }}]: ${{ githu
 
 on:
   workflow_dispatch:
+    inputs:
+      workflow:
+        description: Tests to run
+        required: true
+        type: choice
+        options:
+          - run-integration-tests-cf-env
+          - run-integration-tests-cf-env-with-client-creds
+          - run-integration-tests-cf-env-with-min-capi
+          - run-cats-cf-env
+          # - run-integration-windows
+          # - run-integration-windows-client-credentials
   workflow_run:
     workflows:
       - "Tests"
     types:
       - completed
 
-jobs: 
+jobs:
   run-integration-tests-cf-env:
     name: Integration tests
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
@@ -33,17 +45,32 @@ jobs:
       name: Integration client creds
     secrets: inherit
 
-  # run-integration-tests-cf-env-with-min-capi:
-  #   name: MIN CAPI
-  #   # if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-  #   uses: ./.github/workflows/tests-integration-reusable.yml
-  #   with:
-  #     capi-version: min
-  #     run-with-client-creds: false
-  #     os: ubuntu-latest
-  #     name: Integration MIN CAPI
-  #   secrets: inherit
+  run-integration-tests-cf-env-with-min-capi:
+    name: MIN CAPI
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-tests-cf-env-with-min-capi') || github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/tests-integration-reusable.yml
+    with:
+      capi-version: min
+      run-with-client-creds: false
+      os: ubuntu-latest
+      name: Integration MIN CAPI
+      pool-name: cfd_16_11_0
+      pool-namespace: tas-devex
+      is-pr: ${{ github.event_name != 'workflow_dispatch' }}
+    secrets: inherit
 
+  run-cats-cf-env:
+    name: CATS
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-cats-cf-env') || github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/tests-integration-reusable.yml
+    with:
+      capi-version: edge
+      run-with-client-creds: false
+      os: ubuntu-latest
+      name: cats
+      is-pr: ${{ github.event_name != 'workflow_dispatch' }}
+    secrets: inherit
+  
   #run-integration-windows:
   #  name: Windows
   #  if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
