@@ -107,8 +107,8 @@ jobs:
       run: |
         shepherd login service-account ${account_token}
 
-        echo "shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace tas-devex --namespace ${pool_namespace}"
-        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace tas-devex --namespace ${pool_namespace} --json | jq -r .id)
+        echo "shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace ${pool_namespace} --namespace tas-devex"
+        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace ${pool_namespace} --namespace tas-devex --json | jq -r .id)
         # Give sometime for the lease to complete. Shepherd may take upto an 3 hours to create an env
         # if the pool is empty.
         count=0
