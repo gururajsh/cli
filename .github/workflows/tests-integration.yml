@@ -62,7 +62,7 @@ jobs:
 
   run-cats-cf-env:
     name: CATS
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-CATS-tests-cf-env') || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-cats-cf-env') || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       capi-version: edge
