@@ -218,6 +218,7 @@ jobs:
         bosh -d cf releases | grep capi
 
     - name: Add CATS config
+      if: ${{ inputs.name == 'cats' }}
       run: |
         set -eu
 
@@ -283,6 +284,7 @@ jobs:
         cf enable-feature-flag service_instance_sharing
 
     - name: Run CATS Tests
+      if: ${{ inputs.name == 'cats' }}
       run: |
         set -xeu
 
@@ -307,7 +309,7 @@ jobs:
           --no-color
 
     - name: Run Integration Tests
-      if: ${{ !inputs.run-with-client-creds }}
+      if: ${{ !inputs.run-with-client-creds  &&  inputs.name != 'cats' }}
       run: |
         ENV=$(cat metadata.json | jq -r '.name')
         jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${ENV}.priv
