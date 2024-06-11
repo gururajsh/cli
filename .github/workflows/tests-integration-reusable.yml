@@ -27,7 +27,7 @@ on:
         default: ${{ vars.SHEPHERD_POOL_NAME }}
       pool-namespace:
         type: string
-        default: 'tas-devex'
+        default: 'official'
       is-pr:
         type: boolean
         default: true
