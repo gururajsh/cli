@@ -21,6 +21,8 @@ on:
       - "Tests"
     types:
       - completed
+    branches:
+      - v8
 
 jobs:
   run-integration-tests-cf-env:
