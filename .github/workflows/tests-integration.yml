@@ -21,9 +21,20 @@ on:
       - "Tests"
     types:
       - completed
+    branches:
+      - v8
 
 jobs:
+  # setup:
+  #   runs-on: ubuntu-latest 
+  #   steps:
+  #   - name: Checkout cli
+  #     uses: actions/checkout@v4
+  #     with:
+  #       ref: ${{github.event.workflow_run.head_sha}}  
+
   run-integration-tests-cf-env:
+    # needs: setup
     name: Integration tests
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-tests-cf-env') || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
@@ -36,6 +47,7 @@ jobs:
     secrets: inherit
 
   run-integration-tests-cf-env-with-client-creds:
+    # needs: setup
     name: client creds
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
@@ -48,6 +60,7 @@ jobs:
     secrets: inherit
 
   run-integration-tests-cf-env-with-min-capi:
+    # needs: setup
     name: MIN CAPI
     if: ${{ (github.event_name == 'workflow_dispatch' && inputs.workflow == 'run-integration-tests-cf-env-with-min-capi') || github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
