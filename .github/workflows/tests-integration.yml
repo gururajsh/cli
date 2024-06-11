@@ -20,6 +20,8 @@ on:
       - "Tests"
     types:
       - completed
+    branches:
+      - main
 
 jobs: 
   run-integration-tests-cf-env:
