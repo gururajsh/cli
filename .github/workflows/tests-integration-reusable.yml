@@ -103,9 +103,10 @@ jobs:
       env:
         account_token: ${{ secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN }}
         pool_name: ${{ vars.SHEPHERD_POOL_NAME }}
+        pool_namespace: ${{ inputs.pool-namespace }}
       run: |
         shepherd login service-account ${account_token}
-        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace official --namespace tas-devex --json | jq -r .id) 
+        lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace ${pool_namespace} --namespace tas-devex --json | jq -r .id) 
 
         echo "shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace ${pool_namespace} --namespace tas-devex"
         lease_id=$(shepherd create lease --duration 8h --pool ${pool_name} --pool-namespace ${pool_namespace} --namespace tas-devex --json | jq -r .id)
