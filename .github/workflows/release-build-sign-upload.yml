@@ -44,45 +44,17 @@ permissions:
   contents: read
 
 defaults:
-  # top-level defaults subkeys apply to jobs
-  # run subkeys apply to all steps within all jobs
   run:
     shell: bash
 
 jobs:
-
-  # test:
-  #   environment: DEV
-  #   runs-on: ubuntu-latest
-  #   steps:
-    # - name: Setup upterm session
-    #   env:
-    #     AWS_ACCESS_KEY_ID:              ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_REGION:                     ${{ secrets.AWS_REGION }}
-    #     AWS_SECRET_ACCESS_KEY:          ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     GIT_RELEASE_TARGET_REPO:        ${{ secrets.GIT_RELEASE_TARGET_REPO }}
-    #     GIT_REPO_ACCESS_TOKEN:          ${{ secrets.GIT_REPO_ACCESS_TOKEN }}
-    #     SIGNING_KEY_GPG:                ${{ secrets.SIGNING_KEY_GPG }}
-    #     SIGNING_KEY_GPG_ID:             ${{ secrets.SIGNING_KEY_GPG_ID }}
-    #     SIGNING_KEY_GPG_PASSPHRASE:     ${{ secrets.SIGNING_KEY_GPG_PASSPHRASE }}
-    #     SIGNING_KEY_MAC_ID:             ${{ secrets.SIGNING_KEY_MAC_ID }}
-    #     SIGNING_KEY_MAC_PASSPHRASE:     ${{ secrets.SIGNING_KEY_MAC_PASSPHRASE }}
-    #     SIGNING_KEY_MAC_PFX:            ${{ secrets.SIGNING_KEY_MAC_PFX }}
-    #     SIGNING_KEY_WINDOWS_ID:         ${{ secrets.SIGNING_KEY_WINDOWS_ID }}
-    #     SIGNING_KEY_WINDOWS_PASSPHRASE: ${{ secrets.SIGNING_KEY_WINDOWS_PASSPHRASE }}
-    #     SIGNING_KEY_WINDOWS_PFX:        ${{ secrets.SIGNING_KEY_WINDOWS_PFX }}
-    #     SIGNING_TEST_CA_MAC:            ${{ secrets.SIGNING_TEST_CA_MAC }}
-    #   if: always()
-    #   uses: lhotari/action-upterm@v1
-    #   timeout-minutes: 60
-
   setup:
     name: Setup
     # needs: test
     runs-on: ubuntu-latest
 
     outputs:
-      aws-s3-bucket:       "v${{ steps.parse-semver.outputs.version-major }}-cf-cli-releases"
+      aws-s3-bucket: "v${{ steps.parse-semver.outputs.version-major }}-cf-cli-releases"
 
       version-build: ${{ steps.parse-semver.outputs.version-build }}
       version-major: ${{ steps.parse-semver.outputs.version-major }}
@@ -544,7 +516,6 @@ jobs:
 
     - name: Load macos key
       env:
-        # SIGNING_TEST_CA_MAC:      ${{ secrets.SIGNING_TEST_CA_MAC }}
         SIGNING_KEY_MAC_ID:         ${{ secrets.SIGNING_KEY_MAC_ID }}
         SIGNING_KEY_MAC_PASSPHRASE: ${{ secrets.SIGNING_KEY_MAC_PASSPHRASE }}
         SIGNING_KEY_MAC_PFX:        ${{ secrets.SIGNING_KEY_MAC_PFX }}
@@ -897,7 +868,7 @@ jobs:
         aws-region: us-west-1
         role-to-assume: ${{ env.AWS_S3_ROLE_ARN }}
         role-skip-session-tagging: true
-        role-duration-seconds: 1200
+        role-duration-seconds:     1200
 
     - name: Upload installers to CLAW S3 bucket
       run: aws s3 sync upload "s3://v${VERSION_MAJOR}-cf-cli-releases/releases/v${VERSION_BUILD}/"
@@ -1027,7 +998,7 @@ jobs:
 
     - name: Checkout CLI
       uses: actions/checkout@v4
-     
+    
     - name: Prepare release notes
       run: |
         sed -i 's/new-version/${{ needs.setup.outputs.version-build }}/g' .github/release/release-notes-template.txt
