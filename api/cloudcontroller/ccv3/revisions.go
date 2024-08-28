@@ -36,8 +36,8 @@ func (client *Client) GetApplicationRevisionsDeployed(appGUID string) ([]resourc
 	return revisions, warnings, err
 }
 
-func (client *Client) GetEnvironmentVariablesByURL(url string) (EnvironmentVariables, Warnings, error) {
-	environmentVariables := make(EnvironmentVariables)
+func (client *Client) GetEnvironmentVariablesByURL(url string) (resources.EnvironmentVariables, Warnings, error) {
+	environmentVariables := make(resources.EnvironmentVariables)
 
 	_, warnings, err := client.MakeRequest(RequestParams{
 		URL:          url,
