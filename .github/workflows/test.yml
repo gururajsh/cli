@@ -1,0 +1,18 @@
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version bump'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - minor
+          - patch
+
+jobs:
+  print-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print the input tag to STDOUT
+        run: echo  The tags are ${{ inputs.release_version }} 
