@@ -27,9 +27,11 @@ jobs:
 
       - name: Get latest tag
         run: |
-          set -ex
-          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
+          set -x
+          # latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
+          latest_tag="$(git tag --sort=taggerdate | tail -n 2 | grep v${MAJOR_VERSION})"
           echo "Latest tag is ${latest_tag}"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
           VERSION="${latest_tag#[vV]}"
 
@@ -48,6 +50,27 @@ jobs:
 
           NEW_VERSION="v${MAJOR_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}"
           echo "new version is ${NEW_VERSION}"
+
+          echo "tag name is ${{ github.event.release.tag_name }}"
+
+      - name: Bump Version
+        id: bump
+        uses: cbrgm/semver-bump-action@main
+        with:
+          current-version: ${{ env.latest_tag }}
+          bump-level: ${{ inputs.release_version }}
+          # prerelease-tag: ${{ github.event.inputs.prerelease-tag }}
+
+      - name: Publish Tag
+        run: |
+          new_tag=${{ steps.bump.outputs.new_version }}
+          echo "new version is $new_tag"
+
+      # - name: Push Version Tags
+      #   id: version-tag
+      #   uses: ovsds/push-version-tags-action@v1
+      #   with:
+      #     version: ${{ github.event.release.tag_name }}
 
       # - name: Setup tmate session
       #   if: always()
