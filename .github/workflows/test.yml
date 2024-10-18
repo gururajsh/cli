@@ -16,7 +16,7 @@ jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
     env:
-      MAJOR_VERSOIN: 8
+      MAJOR_VERSION: 8
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout cli
@@ -28,16 +28,27 @@ jobs:
       - name: Get latest tag
         run: |
           set -ex
-          latest_tag="$(gh release list -L 2 --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
+          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
           echo "Latest tag is ${latest_tag}"
 
           VERSION="${latest_tag#[vV]}"
 
           VERSION_MINOR="${VERSION#*.}"
-          echo "1.minor version is ${VERSION_MINOR}"
           VERSION_MINOR="${VERSION_MINOR%.*}"
-          echo "2.minor version is ${VERSION_MINOR}"
+          VERSION_PATCH=${VERSION##*.}
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3
+          echo "minor version is ${VERSION_MINOR}"
+          echo "patch version is ${VERSION_PATCH}"
+
+          if [ "${{ inputs.release_version }}" == "minor" ]; then
+            VERSION_MINOR=$(($VERSION_MINOR + 1))
+          else
+            VERSION_PATCH=$(($VERSION_PATCH + 1))
+          fi
+
+          NEW_VERSION="v${MAJOR_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}"
+          echo "new version is ${NEW_VERSION}"
+
+      # - name: Setup tmate session
+      #   if: always()
+      #   uses: mxschmitt/action-tmate@v3
