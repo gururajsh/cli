@@ -11,8 +11,23 @@ on:
           - patch
 
 jobs:
-  print-tag:
+  calculate-new-version:
     runs-on: ubuntu-latest
+    env:
+      MAJOR_VERSOIN: 8
+      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Get latest tag
+        run: |
+          latest-tag=$(gh release list -L 2 --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})
+          echo "Latest tag is ${latest-tag}"
+
+          VERSION="${latest-tag#[vV]}"
+
+          VERSION_MINOR="${VERSION#*.}"
+          echo "1.minor version is ${VERSION_MINOR}"
+          VERSION_MINOR="${VERSION_MINOR%.*}"
+          echo "2.minor version is ${VERSION_MINOR}"
+
       - name: Print the input tag to STDOUT
         run: echo  The tags are ${{ inputs.release_version }} 
