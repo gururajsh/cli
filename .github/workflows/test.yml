@@ -1,3 +1,5 @@
+name: Test release version
+
 on:
   workflow_dispatch:
     inputs:
@@ -36,3 +38,6 @@ jobs:
           VERSION_MINOR="${VERSION_MINOR%.*}"
           echo "2.minor version is ${VERSION_MINOR}"
 
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
