@@ -19,7 +19,7 @@ jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
     env:
-      VERSION_MAJOR: 9
+      VERSION_MAJOR: 8
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout cli

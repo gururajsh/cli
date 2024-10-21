@@ -38,9 +38,18 @@ run-name: "Release: Build Sign Upload [${{ github.ref_name }}]"
 
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Release version bump'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - minor
+          - patch
 
 permissions:
-  contents: read
+  contents: write
 
 defaults:
   run:
@@ -50,39 +59,54 @@ jobs:
   setup:
     name: Setup
     runs-on: ubuntu-latest
-
+    env:
+      GH_TOKEN: ${{ github.token }}
     outputs:
-      aws-s3-bucket:       "v${{ steps.parse-semver.outputs.version-major }}-cf-cli-releases"
+      aws-s3-bucket:       "v${{ steps.bump-version.outputs.version-major }}-cf-cli-releases"
 
-      version-build: ${{ steps.parse-semver.outputs.version-build }}
-      version-major: ${{ steps.parse-semver.outputs.version-major }}
-      version-minor: ${{ steps.parse-semver.outputs.version-minor }}
-      version-patch: ${{ steps.parse-semver.outputs.version-patch }}
+      version-build: ${{ steps.bump-version.outputs.version-build }}
+      version-major: 8
+      version-minor: ${{ steps.bump-version.outputs.version-minor }}
+      version-patch: ${{ steps.bump-version.outputs.version-patch }}
 
     steps:
     - name: Checkout cli
       uses: actions/checkout@v4
 
-    - name: Check if VERSION_BUILD matches tag ${{ github.ref }}
+    - name: Bump version
+      id: bump-version
       run: |
-        echo "Git Ref: ${{ github.ref }}"
-        echo "VERSION_BUILD: $(cat BUILD_VERSION)"
+        set -x
+        latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
+        echo "Latest tag is ${latest_tag}"
 
-        exit 0
+        version="${latest_tag#[vV]}"
 
-    - name: Parse semver
-      id: parse-semver
+        version_minor="${version#*.}"
+        version_minor="${version_minor%.*}"
+        version_patch=${version##*.}
+
+        if [ "${{ inputs.release_version }}" == "minor" ]; then
+          version_minor=$(($version_minor + 1))
+        else
+          version_patch=$(($version_patch + 1))
+        fi
+
+        new_version="${VERSION_MAJOR}.${version_minor}.${version_patch}"
+        echo "new version is ${new_version}"
+
+        echo "version-build=${new_version}"   >> "${GITHUB_OUTPUT}"
+        echo "version-minor=${version_minor}" >> "${GITHUB_OUTPUT}"
+        echo "version-patch=${version_patch}"   >> "${GITHUB_OUTPUT}"
+
+    - name: Publish Tag
       run: |
-        VERSION=$(cat BUILD_VERSION)
-        VERSION="${VERSION#[vV]}"
-
-        VERSION_MINOR="${VERSION#*.}"
-        VERSION_MINOR="${VERSION_MINOR%.*}"
-
-        echo "version-build=${VERSION}"       >> "${GITHUB_OUTPUT}"
-        echo "version-major=${VERSION%%\.*}"  >> "${GITHUB_OUTPUT}"
-        echo "version-minor=${VERSION_MINOR}" >> "${GITHUB_OUTPUT}"
-        echo "version-patch=${VERSION##*.}"   >> "${GITHUB_OUTPUT}"
+        new_tag="v${{ steps.bump-version.outputs.new_version }}"
+        echo "new version is $new_tag"
+        git config user.name "GitHub Actions"
+        git config user.email "github-actions@users.noreply.github.com"
+        git tag -am "Bump cli version ${new_tag}" ${new_tag}
+        git push origin $new_tag
 
   build-linux:
     name: Build Linux
@@ -251,7 +275,6 @@ jobs:
         if-no-files-found: error
         name: cf-cli-linux-rpm-packages
         path: signed-redhat-installer/*.rpm
-
 
     - name: Build Debian Packages
       env:
@@ -616,55 +639,55 @@ jobs:
           make out/cf-cli_win32.exe
           make out/cf-cli_winx64.exe
 
-      - name: Set up certificate
-        run: |
-          echo "${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CLIENT_CERT_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-        shell: bash
+      # - name: Set up certificate
+      #   run: |
+      #     echo "${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CLIENT_CERT_B64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
+      #   shell: bash
 
-      - name: Set variables
-        id: variables
-        run: |
-          echo "SM_HOST=${{ vars.SIGNING_KEY_WINDOWS_DIGICERT_HOST }}" >> "$GITHUB_ENV"
-          echo "SM_API_KEY=${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_API_KEY }}" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
-          echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CLIENT_CERT_INSTALLATION_PASSWORD }}" >> "$GITHUB_ENV"
-          echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
-          echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
-          echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
-        shell: bash
+      # - name: Set variables
+      #   id: variables
+      #   run: |
+      #     echo "SM_HOST=${{ vars.SIGNING_KEY_WINDOWS_DIGICERT_HOST }}" >> "$GITHUB_ENV"
+      #     echo "SM_API_KEY=${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_API_KEY }}" >> "$GITHUB_ENV"
+      #     echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV"
+      #     echo "SM_CLIENT_CERT_PASSWORD=${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CLIENT_CERT_INSTALLATION_PASSWORD }}" >> "$GITHUB_ENV"
+      #     echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH
+      #     echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH
+      #     echo "C:\Program Files\DigiCert\DigiCert Keylocker Tools" >> $GITHUB_PATH
+      #   shell: bash
 
-      - name: Setup Keylocker KSP on Windows
-        run: |
-          curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi
-          msiexec /i Keylockertools-windows-x64.msi /quiet /qn
-          smksp_registrar.exe list
-          smctl.exe keypair ls
-          C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
-          smctl windows certsync
-        shell: cmd
+      # - name: Setup Keylocker KSP on Windows
+      #   run: |
+      #     curl -X GET  https://one.digicert.com/signingmanager/api-ui/v1/releases/Keylockertools-windows-x64.msi/download -H "x-api-key:%SM_API_KEY%" -o Keylockertools-windows-x64.msi
+      #     msiexec /i Keylockertools-windows-x64.msi /quiet /qn
+      #     smksp_registrar.exe list
+      #     smctl.exe keypair ls
+      #     C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user
+      #     smctl windows certsync
+      #   shell: cmd
 
-      - name: Sign Windows binaries
-        run: |
-          smctl healthcheck --all
-          smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input out\cf-cli_win32.exe
-          smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input out\cf-cli_winx64.exe
+      # - name: Sign Windows binaries
+      #   run: |
+      #     smctl healthcheck --all
+      #     smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input out\cf-cli_win32.exe
+      #     smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input out\cf-cli_winx64.exe
 
-      - name: View binary signatures
-        run: |
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop .\out\cf-cli_win32.exe
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop .\out\cf-cli_winx64.exe
+      # - name: View binary signatures
+      #   run: |
+      #     Get-AuthenticodeSignature -Verbose -ErrorAction Stop .\out\cf-cli_win32.exe
+      #     Get-AuthenticodeSignature -Verbose -ErrorAction Stop .\out\cf-cli_winx64.exe
 
-      - name: Make symlinks
-        run: |
-          New-Item -ItemType SymbolicLink -Target .\out\cf-cli_win32.exe -Path .\out\cf-cli_win32-link.exe
-          New-Item -ItemType SymbolicLink -Target .\out\cf-cli_winx64.exe -Path .\out\cf-cli_winx64-link.exe
+      # - name: Make symlinks
+      #   run: |
+      #     New-Item -ItemType SymbolicLink -Target .\out\cf-cli_win32.exe -Path .\out\cf-cli_win32-link.exe
+      #     New-Item -ItemType SymbolicLink -Target .\out\cf-cli_winx64.exe -Path .\out\cf-cli_winx64-link.exe
 
-      - name: Save signed binaries as a GitHub Action Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: cf-cli-windows-binaries
-          if-no-files-found: error
-          path: out/cf-cli_win*.exe
+      # - name: Save signed binaries as a GitHub Action Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: cf-cli-windows-binaries
+      #     if-no-files-found: error
+      #     path: out/cf-cli_win*.exe
 
       - name: Install innosetup
         run: .\.github\win\install-innosetup.ps1
@@ -676,32 +699,32 @@ jobs:
           mkdir "${env:RUNNER_TEMP}\win32"
           .\.github\win\run-innosetup.ps1 -InnoSetupConfig ".github\win\windows-installer-v${env:VERSION_MAJOR}-x86.iss" -CfBinary "out\cf-cli_win32.exe" -InstallerOutput "${env:RUNNER_TEMP}\win32\cf${env:VERSION_MAJOR}_installer.exe"
 
-      - name: Sign Windows installers
-        run: |
-          smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input "${env:RUNNER_TEMP}\win32\cf${env:VERSION_MAJOR}_installer.exe"
-          smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input "${env:RUNNER_TEMP}\winx64\cf${env:VERSION_MAJOR}_installer.exe"
+      # - name: Sign Windows installers
+      #   run: |
+      #     smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input "${env:RUNNER_TEMP}\win32\cf${env:VERSION_MAJOR}_installer.exe"
+      #     smctl sign --fingerprint ${{ secrets.SIGNING_KEY_WINDOWS_DIGICERT_CERT_FINGERPRINT }} --tool signtool --input "${env:RUNNER_TEMP}\winx64\cf${env:VERSION_MAJOR}_installer.exe"
 
-      - name: View installer signature
-        run: |
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "${env:RUNNER_TEMP}\win32\cf${env:VERSION_MAJOR}_installer.exe"
-          Get-AuthenticodeSignature -Verbose -ErrorAction Stop "${env:RUNNER_TEMP}\winx64\cf${env:VERSION_MAJOR}_installer.exe"
+      # - name: View installer signature
+      #   run: |
+      #     Get-AuthenticodeSignature -Verbose -ErrorAction Stop "${env:RUNNER_TEMP}\win32\cf${env:VERSION_MAJOR}_installer.exe"
+      #     Get-AuthenticodeSignature -Verbose -ErrorAction Stop "${env:RUNNER_TEMP}\winx64\cf${env:VERSION_MAJOR}_installer.exe"
 
-      - name: Arrange files for upload
-        # note the -Path flag takes comma-delimited args
-        run: |
-          Copy-Item -Destination "${env:RUNNER_TEMP}\win32" -Path .github\win\LICENSE,.github\win\NOTICE
-          Copy-Item -Destination "${env:RUNNER_TEMP}\winx64" -Path .github\win\LICENSE,.github\win\NOTICE
+      # - name: Arrange files for upload
+      #   # note the -Path flag takes comma-delimited args
+      #   run: |
+      #     Copy-Item -Destination "${env:RUNNER_TEMP}\win32" -Path .github\win\LICENSE,.github\win\NOTICE
+      #     Copy-Item -Destination "${env:RUNNER_TEMP}\winx64" -Path .github\win\LICENSE,.github\win\NOTICE
 
       - name: Zip Windows artifact
         run: |
           # strip leading v to go from tag -> semver
-          $installer_release_version="$(cat BUILD_VERSION)".Replace("v", "")
+          # $installer_release_version="$(cat BUILD_VERSION)".Replace("v", "")
           pushd "${env:RUNNER_TEMP}\win32"
-            $installer_zip_filename="${env:RUNNER_TEMP}\cf${env:VERSION_MAJOR}-cli-installer_${installer_release_version}_win32.zip"
+            $installer_zip_filename="${env:RUNNER_TEMP}\cf${env:VERSION_MAJOR}-cli-installer_${env:VERSION_BUILD}_win32.zip"
             Compress-Archive -DestinationPath "$installer_zip_filename" -Path *
           popd
           pushd "${env:RUNNER_TEMP}\winx64"
-            $installer_zip_filename="${env:RUNNER_TEMP}\cf${env:VERSION_MAJOR}-cli-installer_${installer_release_version}_winx64.zip"
+            $installer_zip_filename="${env:RUNNER_TEMP}\cf${env:VERSION_MAJOR}-cli-installer_${env:VERSION_BUILD}_winx64.zip"
             Compress-Archive -DestinationPath "$installer_zip_filename" -Path *
           popd
           Get-ChildItem "${env:RUNNER_TEMP}"
