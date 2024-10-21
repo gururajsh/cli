@@ -102,7 +102,7 @@ jobs:
 
     - name: Publish Tag
       run: |
-        new_tag="v${{ steps.bump-version.outputs.new_version }}"
+        new_tag="v${{ steps.bump-version.outputs.version-build }}"
         echo "new version is $new_tag"
         git config user.name "GitHub Actions"
         git config user.email "github-actions@users.noreply.github.com"
