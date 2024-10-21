@@ -28,6 +28,7 @@ jobs:
         id: bumpVersion
         run: |
           set -x
+          git fetch --tags
           latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR} | tail -1)"
           echo "Latest tag is ${latest_tag}"
 
@@ -66,6 +67,6 @@ jobs:
           git tag -am "Bump cli version ${new_tag}" ${new_tag}
           # git push origin $new_tag
 
-      # - name: Setup tmate session
-      #   if: always()
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
