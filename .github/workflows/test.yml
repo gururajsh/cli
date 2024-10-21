@@ -28,9 +28,7 @@ jobs:
         id: bumpVersion
         run: |
           set -x
-          # latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
-          git fetch --tags
-          latest_tag="$(git tag --sort=taggerdate | tail -2 | grep v${VERSION_MAJOR})"
+          latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR} | tail -1)"
           echo "Latest tag is ${latest_tag}"
 
           version="${latest_tag#[vV]}"
