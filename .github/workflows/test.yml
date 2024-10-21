@@ -28,8 +28,7 @@ jobs:
       - name: Get latest tag
         run: |
           set -x
-          # latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
-          latest_tag="$(git tag --sort=taggerdate | tail -n 2 | grep v${MAJOR_VERSION})"
+          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
           echo "Latest tag is ${latest_tag}"
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
@@ -72,6 +71,6 @@ jobs:
       #   with:
       #     version: ${{ github.event.release.tag_name }}
 
-      # - name: Setup tmate session
-      #   if: always()
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
