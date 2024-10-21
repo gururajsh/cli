@@ -19,41 +19,35 @@ jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
     env:
-      MAJOR_VERSION: 8
+      VERSION_MAJOR: 8
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout cli
         uses: actions/checkout@v4
 
-      - name: Print the input tag to STDOUT
-        run: echo  The tags are ${{ inputs.release_version }} 
-
       - name: Bump version
         id: bumpVersion
         run: |
           set -x
-          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
+          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
           echo "Latest tag is ${latest_tag}"
           # echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
-          VERSION="${latest_tag#[vV]}"
+          version="${latest_tag#[vV]}"
 
-          VERSION_MINOR="${VERSION#*.}"
-          VERSION_MINOR="${VERSION_MINOR%.*}"
-          VERSION_PATCH=${VERSION##*.}
-
-          echo "minor version is ${VERSION_MINOR}"
-          echo "patch version is ${VERSION_PATCH}"
+          version_minor="${version#*.}"
+          version_minor="${version_minor%.*}"
+          version_patch=${version##*.}
 
           if [ "${{ inputs.release_version }}" == "minor" ]; then
-            VERSION_MINOR=$(($VERSION_MINOR + 1))
+            version_minor=$(($version_minor + 1))
           else
-            VERSION_PATCH=$(($VERSION_PATCH + 1))
+            version_patch=$(($version_patch + 1))
           fi
 
-          NEW_VERSION="v${MAJOR_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}"
-          echo "new version is ${NEW_VERSION}"
-          echo "new_version=${NEW_VERSION}" >> $GITHUB_ENV
+          new_version="v${VERSION_MAJOR}.${version_minor}.${version_patch}"
+          echo "new version is ${new_version}"
+          echo "new_version=${new_version}" >> $GITHUB_ENV
 
       # - name: Bump Version
       #   id: bump
@@ -71,7 +65,7 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "github-actions@users.noreply.github.com"
           git tag -am "Bump cli version ${new_tag}" ${new_tag}
-          git push origin $new_tag
+          # git push origin $new_tag
 
       # - name: Setup tmate session
       #   if: always()
