@@ -19,7 +19,7 @@ jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
     env:
-      VERSION_MAJOR: 8
+      VERSION_MAJOR: 9
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout cli
@@ -31,7 +31,6 @@ jobs:
           set -x
           latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
           echo "Latest tag is ${latest_tag}"
-          # echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
           version="${latest_tag#[vV]}"
 
@@ -45,7 +44,7 @@ jobs:
             version_patch=$(($version_patch + 1))
           fi
 
-          new_version="v${VERSION_MAJOR}.${version_minor}.${version_patch}"
+          new_version="${VERSION_MAJOR}.${version_minor}.${version_patch}"
           echo "new version is ${new_version}"
           echo "new_version=${new_version}" >> $GITHUB_ENV
 
@@ -60,7 +59,7 @@ jobs:
       - name: Publish Tag
         run: |
           # new_tag="v${{ steps.bump.outputs.new_version }}"
-          new_tag="test${{ env.new_version }}"
+          new_tag="v${{ env.new_version }}"
           echo "new version is $new_tag"
           git config user.name "GitHub Actions"
           git config user.email "github-actions@users.noreply.github.com"
