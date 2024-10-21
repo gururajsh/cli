@@ -12,6 +12,9 @@ on:
           - minor
           - patch
 
+permissions:
+  contents: write
+  
 jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
@@ -51,8 +54,6 @@ jobs:
           NEW_VERSION="v${MAJOR_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}"
           echo "new version is ${NEW_VERSION}"
           echo "new_version=${NEW_VERSION}"       >> "${GITHUB_ENV}"
-
-          echo "tag name is ${{ github.event.release.tag_name }}"
 
       # - name: Bump Version
       #   id: bump
