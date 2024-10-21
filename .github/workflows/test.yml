@@ -20,7 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION_MAJOR: 8
-      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout cli
         uses: actions/checkout@v4
@@ -29,7 +28,9 @@ jobs:
         id: bumpVersion
         run: |
           set -x
-          latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
+          # latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
+          git fetch --tags
+          latest_tag="$(git tag --sort=taggerdate | tail -2 | grep v${VERSION_MAJOR})"
           echo "Latest tag is ${latest_tag}"
 
           version="${latest_tag#[vV]}"
