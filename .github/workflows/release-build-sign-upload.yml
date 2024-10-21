@@ -89,6 +89,7 @@ jobs:
 
         if [ "${{ inputs.release_version }}" == "minor" ]; then
           version_minor=$(($version_minor + 1))
+          version_patch=0
         else
           version_patch=$(($version_patch + 1))
         fi
