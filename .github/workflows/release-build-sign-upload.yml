@@ -60,12 +60,13 @@ jobs:
     name: Setup
     runs-on: ubuntu-latest
     env:
+      VERSION_MAJOR: 8
       GH_TOKEN: ${{ github.token }}
     outputs:
       aws-s3-bucket:       "v${{ steps.bump-version.outputs.version-major }}-cf-cli-releases"
 
       version-build: ${{ steps.bump-version.outputs.version-build }}
-      version-major: 8
+      version-major: ${{ env.VERSION_MAJOR }}
       version-minor: ${{ steps.bump-version.outputs.version-minor }}
       version-patch: ${{ steps.bump-version.outputs.version-patch }}
 
