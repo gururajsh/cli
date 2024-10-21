@@ -14,7 +14,7 @@ on:
 
 permissions:
   contents: write
-  
+
 jobs:
   calculate-new-version:
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
           set -x
           latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${MAJOR_VERSION})"
           echo "Latest tag is ${latest_tag}"
-          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+          # echo "latest_tag=$latest_tag" >> $GITHUB_ENV
 
           VERSION="${latest_tag#[vV]}"
 
@@ -53,7 +53,7 @@ jobs:
 
           NEW_VERSION="v${MAJOR_VERSION}.${VERSION_MINOR}.${VERSION_PATCH}"
           echo "new version is ${NEW_VERSION}"
-          echo "new_version=${NEW_VERSION}"       >> "${GITHUB_ENV}"
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_ENV
 
       # - name: Bump Version
       #   id: bump
@@ -66,13 +66,13 @@ jobs:
       - name: Publish Tag
         run: |
           # new_tag="v${{ steps.bump.outputs.new_version }}"
-          new_tag="test${{ steps.bumpVersion.outputs.new_version }}"
+          new_tag="test${{ env.new_version }}"
           echo "new version is $new_tag"
           git config user.name "GitHub Actions"
           git config user.email "github-actions@users.noreply.github.com"
           git tag -am "Bump cli version ${new_tag}" ${new_tag}
           git push origin $new_tag
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   if: always()
+      #   uses: mxschmitt/action-tmate@v3
