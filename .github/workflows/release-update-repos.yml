@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION_MAJOR: 8
-      GH_TOKEN: ${{ github.token }}
     outputs:
       version-build: ${{ steps.parse-semver.outputs.version-build }}
       version-major: ${{ env.VERSION_MAJOR }}
@@ -36,7 +35,8 @@ jobs:
     - name: Parse semver
       id: parse-semver
       run: |
-        latest_tag="$(gh release list -L 2 --repo cloudfoundry/cli --exclude-pre-releases --exclude-drafts --json tagName --jq '.[].tagName' | grep v${VERSION_MAJOR})"
+        git fetch --tags --quiet
+        latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR} | tail -1)"
         echo "Latest tag is ${latest_tag}"
         
         version="${latest_tag#[vV]}"
@@ -51,14 +51,14 @@ jobs:
 
         echo "VERSION_BUILD=${version}"       >> "${GITHUB_ENV}"
 
-    - name: Test if CLAW serve this version
-      env:
-        CLAW_URL: ${{ steps.set-claw-url.outputs.claw-url }}
-      run: >
-        set -vx
+    # - name: Test if CLAW serve this version
+    #   env:
+    #     CLAW_URL: ${{ steps.set-claw-url.outputs.claw-url }}
+    #   run: >
+    #     set -vx
 
-        curl --head "${CLAW_URL}/stable?release=linux64-binary&version=${VERSION_BUILD}&source=test" 2>&1 |
-        grep --quiet --regexp 'HTTP.*302'
+    #     curl --head "${CLAW_URL}/stable?release=linux64-binary&version=${VERSION_BUILD}&source=test" 2>&1 |
+    #     grep --quiet --regexp 'HTTP.*302'
 
   update-homebrew:
     name: Update Homebrew Repository

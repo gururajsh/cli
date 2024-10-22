@@ -77,7 +77,8 @@ jobs:
       id: bump-version
       run: |
         set -x
-        latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR})"
+        git fetch --tags --quiet
+        latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR} | tail -1)"
         echo "Latest tag is ${latest_tag}"
 
         version="${latest_tag#[vV]}"

@@ -67,6 +67,6 @@ jobs:
           git tag -am "Bump cli version ${new_tag}" ${new_tag}
           # git push origin $new_tag
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   if: always()
+      #   uses: mxschmitt/action-tmate@v3
