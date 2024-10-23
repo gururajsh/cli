@@ -164,6 +164,7 @@ jobs:
 
     - name: Build Linux
       run: |
+        export CF_BUILD_VERSION=${VERSION_BUILD}
         make out/cf-cli_linux_i686
         make out/cf-cli_linux_x86-64
         make out/cf-cli_linux_arm64
@@ -459,6 +460,7 @@ jobs:
 
     - name: Build macOS Binaries
       run: |
+        export CF_BUILD_VERSION=${VERSION_BUILD}
         make out/cf-cli_osx
         make out/cf-cli_macosarm
 
@@ -637,6 +639,8 @@ jobs:
           go install github.com/akavel/rsrc@v0.10.2
 
       - name: Build CF CLI for Windows
+        env: 
+          CF_BUILD_VERSION: ${VERSION_BUILD}
         run: |
           Get-Command make
           Get-Item Makefile
@@ -721,8 +725,6 @@ jobs:
 
       - name: Zip Windows artifact
         run: |
-          # strip leading v to go from tag -> semver
-          # $installer_release_version="$(cat BUILD_VERSION)".Replace("v", "")
           pushd "${env:RUNNER_TEMP}\win32"
             $installer_zip_filename="${env:RUNNER_TEMP}\cf${env:VERSION_MAJOR}-cli-installer_${env:VERSION_BUILD}_win32.zip"
             Compress-Archive -DestinationPath "$installer_zip_filename" -Path *
