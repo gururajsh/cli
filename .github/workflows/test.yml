@@ -65,7 +65,7 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "github-actions@users.noreply.github.com"
           git tag -am "Bump cli version ${new_tag}" ${new_tag}
-          # git push origin $new_tag
+          git push origin $new_tag
 
       # - name: Setup tmate session
       #   if: always()
