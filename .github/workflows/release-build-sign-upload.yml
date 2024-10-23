@@ -72,14 +72,12 @@ jobs:
     steps:
     - name: Checkout cli
       uses: actions/checkout@v4
-      with:
-        fetch-tags: true
       
     - name: Bump version
       id: bump-version
       run: |
         set -x
-        # git fetch --tags --quiet
+        git fetch --tags --quiet
         latest_tag="$(git tag | sort -V | grep v${VERSION_MAJOR} | tail -1)"
         echo "Latest tag is ${latest_tag}"
 
