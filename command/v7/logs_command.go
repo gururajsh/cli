@@ -2,7 +2,6 @@ package v7
 
 import (
 	"os"
-	"os/signal"
 	"time"
 
 	"code.cloudfoundry.org/cli/actor/actionerror"
@@ -142,7 +141,7 @@ func (cmd LogsCommand) streamLogs() error {
 		return err
 	}
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	// signal.Notify(c, os.Interrupt)
 
 	defer stopStreaming()
 	var messagesClosed, errLogsClosed bool
