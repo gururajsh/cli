@@ -29,16 +29,16 @@ jobs:
           bbl_artifact=bbl-v8.4.110_linux_x86-64
           bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
           
-          curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
-          chmod +x $install_location/bbl
+          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
+          sudo chmod +x $install_location/bbl
           bbl --version
   
-          curl https://github.com/cloudfoundry/bosh-cli/releases/download/v7.7.2/$bosh_cli_artifact --silent --output $install_location/bosh --location
-          chmod +x $install_location/bosh
+          sudo curl https://github.com/cloudfoundry/bosh-cli/releases/download/v7.7.2/$bosh_cli_artifact --silent --output $install_location/bosh --location
+          sudo chmod +x $install_location/bosh
           bosh --version
   
-          apt-get update
-          apt-get install -y build-essential unzip
+          sudo apt-get update
+          sudo apt-get install -y build-essential unzip
           
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
