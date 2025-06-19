@@ -28,7 +28,7 @@ jobs:
           install_location=/usr/local/bin
           bbl_artifact=bbl-v8.4.110_linux_x86-64
           bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
-          credhub_cli_artifact=credhub-linux-amd64-2.9.46.tgz
+          credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
           
           sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
           sudo chmod +x $install_location/bbl
@@ -38,7 +38,7 @@ jobs:
           sudo chmod +x $install_location/bosh
           bosh --version
   
-          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.46/$credhub_cli_artifact --silent --location --output $install_location/credhub 
+          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz && tar -xzf /tmp/credhub.tgz -C $install_location  
           sudo chmod +x $install_location/credhub
           credhub --version
 
