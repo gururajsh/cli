@@ -38,7 +38,8 @@ jobs:
           sudo chmod +x $install_location/bosh
           bosh --version
   
-          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz && tar -xzf /tmp/credhub.tgz -C $install_location  
+          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz
+          sudo tar -xzf /tmp/credhub.tgz -C $install_location  
           sudo chmod +x $install_location/credhub
           credhub --version
 
