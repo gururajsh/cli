@@ -46,10 +46,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential unzip
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3
-                  
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -63,10 +59,10 @@ jobs:
           mkdir vars
           gsutil cp gs://cf-cli-bosh-lites/bbl-state.json . 
           gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml vars/
+          gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml vars/
           gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml vars/
 
       - name: Run Integration Tests
-        if: ${{ !inputs.run-with-client-creds  &&  inputs.name != 'cats' }}
         run: |
           eval "$(bbl print-env)"
           env_name=$(bbl env-id)
@@ -90,4 +86,7 @@ jobs:
           cf auth
 
           make integration-tests-full-ci
-      
+
+      # - name: Setup tmate session
+      #   if: always()
+      #   uses: mxschmitt/action-tmate@v3
