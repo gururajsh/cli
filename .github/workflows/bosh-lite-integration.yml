@@ -66,11 +66,11 @@ jobs:
         run: |
           eval "$(bbl print-env)"
           env_name=$(bbl env-id)
-          credhub login
+          # credhub login
           export CF_INT_PASSWORD="$(credhub get -n /bosh-${env_name}/cf/cf_admin_password | bosh interpolate --path /value -)"
           export CF_INT_OIDC_USERNAME="admin-oidc"
           export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${env_name}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-          API_URL="$(jq -r .cf.api_url metadata.json)"
+          API_URL="api.${env_name}.app-runtime-interfaces.ci.cloudfoundry.org"
           export CF_INT_API="https://$API_URL"
           export CF_DIAL_TIMEOUT=15
           export CF_USERNAME=admin
