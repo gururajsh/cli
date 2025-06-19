@@ -1,0 +1,82 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run tests
+    defaults:
+      run:
+        shell: bash
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          ref: ${{needs.get-sha.outputs.gitRef}}
+
+      - name: Set Up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      - name: Install Tools
+        if: ${{ (inputs.lease_id == '') || (inputs.reinstall_cfd == true) }}
+        run: |
+          go version
+
+          install_location=/usr/local/bin
+          bbl_artifact=bbl-v8.4.110_linux_x86-64
+          bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
+          
+          curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
+          chmod +x $install_location/bbl
+          bbl --version
+  
+          curl https://github.com/cloudfoundry/bosh-cli/releases/download/v7.7.2/$bosh_cli_artifact --silent --output $install_location/bosh --location
+          chmod +x $install_location/bosh
+          bosh --version
+  
+          apt-get update
+          apt-get install -y build-essential unzip
+          
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Download file from GCS
+        run: |
+          mkdir vars
+          gsutil cp gs://cf-cli-bosh-lites/bbl-state.json . 
+          gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml vars/
+          gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml vars/
+
+      - name: Run Integration Tests
+        if: ${{ !inputs.run-with-client-creds  &&  inputs.name != 'cats' }}
+        run: |
+          eval "$(bbl print-env)"
+          env_name=$(bbl env-id)
+          export CF_INT_PASSWORD="$(credhub get -n /bosh-${env_name}/cf/cf_admin_password | bosh interpolate --path /value -)"
+          export CF_INT_OIDC_USERNAME="admin-oidc"
+          export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${env_name}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
+          API_URL="$(jq -r .cf.api_url metadata.json)"
+          export CF_INT_API="https://$API_URL"
+          export CF_DIAL_TIMEOUT=15
+          export CF_USERNAME=admin
+          export GOPATH=$PWD/go
+          export PATH="$GOPATH/bin:$PATH"
+          export PATH="$PWD/out:$PATH"
+          export CF_INT_TEST_NAME="int"
+
+          make build
+
+          export CF_PASSWORD=${CF_INT_PASSWORD}
+          cf api ${CF_INT_API} --skip-ssl-validation
+          cf auth
+
+          make integration-tests-full-ci
+      
