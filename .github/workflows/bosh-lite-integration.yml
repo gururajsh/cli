@@ -87,6 +87,6 @@ jobs:
 
           make integration-tests-full-ci
 
-      # - name: Setup tmate session
-      #   if: always()
-      #   uses: mxschmitt/action-tmate@v3
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
