@@ -18,7 +18,7 @@ jobs:
       - name: Set Up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: cli/go.mod
           check-latest: true
 
       - name: Install Tools
@@ -81,18 +81,20 @@ jobs:
           export CF_USERNAME=admin
           export GOPATH=$PWD/go
           export PATH="$GOPATH/bin:$PATH"
-          export PATH="$PWD/out:$PATH"
           export CF_INT_TEST_NAME="int"
           export CF_PASSWORD=${CF_INT_PASSWORD}
 
-          make build
+          pushd cli
+            export PATH="$PWD/out:$PATH"
+            make build
 
-          make integration-cleanup
+            make integration-cleanup
 
-          cf api ${CF_INT_API} --skip-ssl-validation
-          cf auth
+            cf api ${CF_INT_API} --skip-ssl-validation
+            cf auth
 
-          make integration-tests-full-ci
+            make integration-tests-full-ci
+          popd
 
       - name: Setup tmate session
         if: always()
