@@ -13,7 +13,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{needs.get-sha.outputs.gitRef}}
-
+          fetch-tags: true
+          path: cli
       - name: Set Up Go
         uses: actions/setup-go@v5
         with:
@@ -21,7 +22,6 @@ jobs:
           check-latest: true
 
       - name: Install Tools
-        if: ${{ (inputs.lease_id == '') || (inputs.reinstall_cfd == true) }}
         run: |
           go version
 
@@ -56,17 +56,22 @@ jobs:
 
       - name: Download file from GCS
         run: |
-          mkdir vars
-          gsutil cp gs://cf-cli-bosh-lites/bbl-state.json . 
-          gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml vars/
-          gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml vars/
-          gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml vars/
+          mkdir bbl-state
+          mkdir bbl-state/vars
+          gsutil cp gs://cf-cli-bosh-lites/bbl-state.json ./bbl-state/ 
+          gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml ./bbl-state/vars/
+          gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml ./bbl-state/vars/
+          gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml ./bbl-state/vars/
 
       - name: Run Integration Tests
+        env:
+          CF_BUILD_VERSION: ${{ vars.CF_BUILD_VERSION }}
         run: |
-          eval "$(bbl print-env)"
-          env_name=$(bbl env-id)
-          # credhub login
+          pushd bbl-state
+            eval "$(bbl print-env)"
+            env_name=$(bbl env-id)
+          popd
+          
           export CF_INT_PASSWORD="$(credhub get -n /bosh-${env_name}/cf/cf_admin_password | bosh interpolate --path /value -)"
           export CF_INT_OIDC_USERNAME="admin-oidc"
           export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${env_name}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
@@ -78,10 +83,12 @@ jobs:
           export PATH="$GOPATH/bin:$PATH"
           export PATH="$PWD/out:$PATH"
           export CF_INT_TEST_NAME="int"
+          export CF_PASSWORD=${CF_INT_PASSWORD}
 
           make build
 
-          export CF_PASSWORD=${CF_INT_PASSWORD}
+          make integration-cleanup
+
           cf api ${CF_INT_API} --skip-ssl-validation
           cf auth
 
