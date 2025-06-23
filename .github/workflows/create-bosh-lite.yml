@@ -1,0 +1,114 @@
+name: Integration Tests
+on:
+  workflow_dispatch:
+
+env:
+  BBL_IAAS: gcp
+  BBL_GCP_REGION: us-east1
+  BBL_GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_CREDENTIALS_JSON }}
+  ENV_NAME: env-6
+
+jobs:
+  create-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: Install Tools
+        run: |
+          go version
+
+          install_location=/usr/local/bin
+          bbl_artifact=bbl-v8.4.110_linux_x86-64
+          bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
+          credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
+          
+          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
+          sudo chmod +x $install_location/bbl
+          bbl --version
+  
+          sudo curl https://github.com/cloudfoundry/bosh-cli/releases/download/v7.7.2/$bosh_cli_artifact --silent --output $install_location/bosh --location
+          sudo chmod +x $install_location/bosh
+          bosh --version
+  
+          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz
+          sudo tar -xzf /tmp/credhub.tgz -C $install_location  
+          sudo chmod +x $install_location/credhub
+          credhub --version
+
+          sudo apt-get update
+          sudo apt-get install -y build-essential unzip
+
+      - name: Checkout bosh-bootloader
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/bosh-bootloader
+          path: bosh-bootloader
+
+      - name: Create bbl env
+        run: |
+          mkdir -p bbl-state && cd bbl-state
+          cp -R ${HOME}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
+          bbl plan --name ${ENV_NAME}
+          cp ${HOME}/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
+          cp ${HOME}/.github/bosh-lite-files/bosh-lite.tfvars vars/
+          bbl up
+
+      - id: 'upload-folder'
+        name: Upload bbl state to GCS
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: '${HOME}/bbl-state'
+          destination: 'cf-cli-bosh-lites'
+
+    # Example of using the output
+      - id: 'uploaded-files'
+        run: |
+          echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
+
+      - name: Checkout bosh-deployment
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/bosh-deployment
+          path: bosh-deployment
+
+      - name: Checkout bosh bootloader
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/bosh-bootloader
+          path: bosh-bootloader
+
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          path: cli
+
+      - name: Deploy cf
+        run: |
+          cd ${ENV_NAME}-bbl-state
+          eval "$(bbl print-env)"
+          bosh update-runtime-config ${HOME}/bosh-deployment/runtime-configs/dns.yml --name dns
+          STEMCELL_VERSION=$(bosh interpolate ${HOME}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
+          bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
+          bosh update-cloud-config ${HOME}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
+
+          bosh interpolate ${HOME}/cf-deployment/cf-deployment.yml \
+          -o ${HOME}/cf-deployment/operations/bosh-lite.yml \
+          -o ${HOME}/cf-deployment/operations/enable-v2-api.yml \
+          -o ${HOME}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
+          -o ${HOME}/cli/.github/ops-files/add-oidc-provider.yml \
+          -o ${HOME}/cli/.github/ops-files/add-uaa-client-credentials.yml \
+          -o ${HOME}/cli/.github/ops-files/diego-cell-instances.yml \
+          -v system_domain=${SYSTEM_DOMAIN} \
+          -v client-secret="${{ secrets.CLIENT_SECRET }}" \
+          > ./director.yml
+
+          bosh deploy -d cf director.yml
+
+    
