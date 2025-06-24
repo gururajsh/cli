@@ -65,6 +65,14 @@ jobs:
           bbl plan --name ${ENV_NAME}
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
+
+          cat > bosh-deployment/gcp/bosh-lite-vm-type.yml << EOD
+          ---
+          # Configure sizes for bosh-lite on gcp
+          - type: replace
+            path: /resource_pools/name=vms/cloud_properties/machine_type
+            value: n1-standard-16
+          EOD
           bbl up
 
       - id: 'upload-folder'
