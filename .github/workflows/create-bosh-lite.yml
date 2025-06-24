@@ -85,6 +85,11 @@ jobs:
           repository: cloudfoundry/bosh-deployment
           path: bosh-deployment
 
+      - name: Checkout cf-deployment
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/cf-deployment
+          path: cf-deployment
       - name: Checkout bosh bootloader
         uses: actions/checkout@v4
         with:
@@ -111,8 +116,11 @@ jobs:
 
           bosh deploy director.yml
 
-          # -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
-          # -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
+          bosh manifest > manifest.yml
+
+          bosh deploy manifest.yml \          
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml
 
       - name: Setup tmate session
         if: always()
