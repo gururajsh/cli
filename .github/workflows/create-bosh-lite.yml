@@ -53,6 +53,9 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3          
       - name: Create bbl env
         run: |
           mkdir -p bbl-state && cd bbl-state
