@@ -59,6 +59,7 @@ jobs:
           path: cli
 
       - name: Create bbl env
+        if: false
         run: |
           mkdir -p bbl-state && cd bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
@@ -76,6 +77,7 @@ jobs:
           bbl up
 
       - id: 'upload-folder'
+        if: false
         name: Upload bbl state to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
@@ -84,6 +86,7 @@ jobs:
 
     # Example of using the output
       - id: 'uploaded-files'
+        if: false
         run: |
           echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
 
@@ -104,6 +107,18 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Download state
+        run: |
+          gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
+          
       - name: Deploy cf
         run: |
           cd bbl-state
@@ -112,6 +127,7 @@ jobs:
           STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
           bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
+          SYSTEM_DOMAIN="${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
 
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
