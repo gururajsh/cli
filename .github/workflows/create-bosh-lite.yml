@@ -44,12 +44,11 @@ jobs:
           sudo chmod +x $install_location/credhub
           credhub --version
 
-          sudo apt update
-          sudo apt install -y build-essential unzip
-
           wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
           echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-          sudo apt install terraform
+          sudo apt update
+          sudo apt install -y build-essential unzip terraform
+
           terraform --version
 
       - name: Checkout bosh-bootloader
@@ -109,14 +108,15 @@ jobs:
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/enable-v2-api.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
-          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
-          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
           -v system_domain=${SYSTEM_DOMAIN} \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           > ./director.yml
 
           bosh deploy director.yml
+
+          # -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
+          # -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
 
       - name: Setup tmate session
         if: always()
