@@ -44,12 +44,8 @@ jobs:
           sudo chmod +x $install_location/credhub
           credhub --version
 
-          # wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          # echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update
           sudo apt install -y build-essential unzip
-
-          # terraform --version
 
       - name: Checkout bosh-bootloader
         uses: actions/checkout@v4
@@ -75,7 +71,7 @@ jobs:
         name: Upload bbl state to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
-          path: '${GITHUB_WORKSPACE}/bbl-state'
+          path: 'bbl-state'
           destination: 'cf-cli-bosh-lites'
 
     # Example of using the output
@@ -97,7 +93,7 @@ jobs:
 
       - name: Deploy cf
         run: |
-          cd ${ENV_NAME}-bbl-state
+          cd bbl-state
           eval "$(bbl print-env)"
           bosh update-runtime-config ${GITHUB_WORKSPACE}/bosh-deployment/runtime-configs/dns.yml --name dns
           STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
