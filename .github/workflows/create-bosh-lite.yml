@@ -27,11 +27,11 @@ jobs:
           go version
 
           install_location=/usr/local/bin
-          bbl_artifact=bbl-v8.4.110_linux_x86-64
+          bbl_verison=v9.0.35
           bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
           credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
           
-          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v8.4.110/${bbl_artifact} --silent --location --output  $install_location/bbl
+          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/${bbl_version}/bbl-${bbl_version}_linux_amd64 --silent --location --output  $install_location/bbl
           sudo chmod +x $install_location/bbl
           bbl --version
   
@@ -44,12 +44,12 @@ jobs:
           sudo chmod +x $install_location/credhub
           credhub --version
 
-          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          # wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          # echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
           sudo apt update
-          sudo apt install -y build-essential unzip terraform
+          sudo apt install -y build-essential unzip
 
-          terraform --version
+          # terraform --version
 
       - name: Checkout bosh-bootloader
         uses: actions/checkout@v4
