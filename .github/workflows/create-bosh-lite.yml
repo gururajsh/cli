@@ -53,23 +53,23 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
-      - name: Setup tmate session
-        if: always()
-        uses: mxschmitt/action-tmate@v3          
+      # - name: Setup tmate session
+      #   if: always()
+      #   uses: mxschmitt/action-tmate@v3          
       - name: Create bbl env
         run: |
           mkdir -p bbl-state && cd bbl-state
-          cp -R ${HOME}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
+          cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
           bbl plan --name ${ENV_NAME}
-          cp ${HOME}/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
-          cp ${HOME}/.github/bosh-lite-files/bosh-lite.tfvars vars/
+          cp ${GITHUB_WORKSPACE}/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
+          cp ${GITHUB_WORKSPACE}/.github/bosh-lite-files/bosh-lite.tfvars vars/
           bbl up
 
       - id: 'upload-folder'
         name: Upload bbl state to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
-          path: '${HOME}/bbl-state'
+          path: '${GITHUB_WORKSPACE}/bbl-state'
           destination: 'cf-cli-bosh-lites'
 
     # Example of using the output
@@ -98,18 +98,18 @@ jobs:
         run: |
           cd ${ENV_NAME}-bbl-state
           eval "$(bbl print-env)"
-          bosh update-runtime-config ${HOME}/bosh-deployment/runtime-configs/dns.yml --name dns
-          STEMCELL_VERSION=$(bosh interpolate ${HOME}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
+          bosh update-runtime-config ${GITHUB_WORKSPACE}/bosh-deployment/runtime-configs/dns.yml --name dns
+          STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
           bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
-          bosh update-cloud-config ${HOME}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
+          bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
 
-          bosh interpolate ${HOME}/cf-deployment/cf-deployment.yml \
-          -o ${HOME}/cf-deployment/operations/bosh-lite.yml \
-          -o ${HOME}/cf-deployment/operations/enable-v2-api.yml \
-          -o ${HOME}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
-          -o ${HOME}/cli/.github/ops-files/add-oidc-provider.yml \
-          -o ${HOME}/cli/.github/ops-files/add-uaa-client-credentials.yml \
-          -o ${HOME}/cli/.github/ops-files/diego-cell-instances.yml \
+          bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
+          -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
+          -o ${GITHUB_WORKSPACE}/cf-deployment/operations/enable-v2-api.yml \
+          -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
           -v system_domain=${SYSTEM_DOMAIN} \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           > ./director.yml
