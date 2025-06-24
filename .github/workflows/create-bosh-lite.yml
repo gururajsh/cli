@@ -107,14 +107,6 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
-
-      - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-
       - name: Download state
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
