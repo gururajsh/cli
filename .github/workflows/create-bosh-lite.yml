@@ -27,7 +27,7 @@ jobs:
           go version
 
           install_location=/usr/local/bin
-          bbl_verison=v9.0.35
+          bbl_version=v9.0.35
           bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
           credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
           
