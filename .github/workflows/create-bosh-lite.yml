@@ -57,13 +57,18 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          path: cli
+
       - name: Create bbl env
         run: |
           mkdir -p bbl-state && cd bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
           bbl plan --name ${ENV_NAME}
-          cp ${GITHUB_WORKSPACE}/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
-          cp ${GITHUB_WORKSPACE}/.github/bosh-lite-files/bosh-lite.tfvars vars/
+          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
+          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           bbl up
 
       - id: 'upload-folder'
@@ -89,11 +94,6 @@ jobs:
         with:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
-
-      - name: Checkout cli
-        uses: actions/checkout@v4
-        with:
-          path: cli
 
       - name: Deploy cf
         run: |
