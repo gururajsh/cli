@@ -1,4 +1,4 @@
-name: Integration Tests
+name: Create environment
 on:
   workflow_dispatch:
 
@@ -6,7 +6,9 @@ env:
   BBL_IAAS: gcp
   BBL_GCP_REGION: us-east1
   BBL_GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_CREDENTIALS_JSON }}
-  ENV_NAME: env-6
+  ENV_NAME: env-1
+  BOSH_DEPLOYMENT: cf
+  BOSH_NON_INTERACTIVE: true
 
 jobs:
   create-env:
@@ -109,6 +111,6 @@ jobs:
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           > ./director.yml
 
-          bosh deploy -d cf director.yml
+          bosh deploy director.yml
 
     
