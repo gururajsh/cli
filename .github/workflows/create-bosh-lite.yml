@@ -58,61 +58,67 @@ jobs:
         with:
           path: cli
 
-      - name: Create bbl env
-        if: false
+      - name: Setup bbl
         run: |
-          mkdir -p bbl-state && cd bbl-state
+          grep '^.\{1,4\}$' /usr/share/dict/words |
+          shuf -n1 |
+          tr -dc '[:alnum:]\n\r' |
+          tr '[:upper:]' '[:lower:]' |
+          tee "$ENV_NAME"
+
+          ENV_NAME=cli-${ENV_NAME}
+          mkdir -p ${ENV_NAME}/bbl-state
+      - name: Create bbl env
+        run: |
+          echo "${ENV_NAME} ======================="
+          cd ${ENV_NAME}/bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
           bbl plan --name ${ENV_NAME}
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
-
-          cat > bosh-deployment/gcp/bosh-lite-vm-type.yml << EOD
-          ---
-          # Configure sizes for bosh-lite on gcp
-          - type: replace
-            path: /resource_pools/name=vms/cloud_properties/machine_type
-            value: n1-standard-16
-          EOD
-          bbl up
+          cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
+          # bbl up
 
       - id: 'upload-folder'
-        if: false
         name: Upload bbl state to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
-          path: 'bbl-state'
+          path: '${ENV_NAME}/bbl-state'
           destination: 'cf-cli-bosh-lites'
 
     # Example of using the output
       - id: 'uploaded-files'
-        if: false
         run: |
           echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
 
       - name: Checkout bosh-deployment
+        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/bosh-deployment
           path: bosh-deployment
 
       - name: Checkout cf-deployment
+        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/cf-deployment
           ref: release-candidate
           path: cf-deployment
       - name: Checkout bosh bootloader
+        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
       - name: Download state
+        if: false
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
           
       - name: Deploy cf
+        if: false
         run: |
           cd bbl-state
           eval "$(bbl print-env)"
@@ -139,5 +145,5 @@ jobs:
           bosh deploy director.yml
 
       - name: Setup tmate session
-        if: always()
+        if: failure()
         uses: mxschmitt/action-tmate@v3          
