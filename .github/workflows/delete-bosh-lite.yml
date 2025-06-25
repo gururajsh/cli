@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       env-name:
-        description: Major version to retrieve
+        description: Env name to delete
         required: true
         type: string
 
@@ -56,7 +56,7 @@ jobs:
 
       - name: Download file from GCS
         run: |
-          gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME}/bbl-state . 
+          gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
 
       - name: delete cf
         run: |
