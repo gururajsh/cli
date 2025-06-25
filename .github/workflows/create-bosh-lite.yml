@@ -45,7 +45,7 @@ jobs:
           credhub --version
 
           sudo apt update
-          sudo apt install -y build-essential unzip
+          sudo apt install -y build-essential unzip wamerican
 
       - name: Checkout bosh-bootloader
         uses: actions/checkout@v4
@@ -60,14 +60,15 @@ jobs:
 
       - name: Setup bbl
         run: |
-          grep '^.\{1,4\}$' /usr/share/dict/words |
+          ENV_NAME="$(grep '^.\{1,4\}$' /usr/share/dict/words |
           shuf -n1 |
           tr -dc '[:alnum:]\n\r' |
-          tr '[:upper:]' '[:lower:]' |
-          tee "$ENV_NAME"
+          tr '[:upper:]' '[:lower:]')"
 
-          ENV_NAME=cli-${ENV_NAME}
-          mkdir -p ${ENV_NAME}/bbl-state
+          if [ ! -z "${ENV_NAME}" ]; then
+            ENV_NAME=cli-${ENV_NAME}
+            mkdir -p ${ENV_NAME}/bbl-state
+          fi
       - name: Create bbl env
         run: |
           echo "${ENV_NAME} ======================="
