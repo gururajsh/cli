@@ -13,6 +13,8 @@ env:
 jobs:
   create-env:
     runs-on: ubuntu-latest
+    outputs:
+      envName: ${{steps.setup-bbl-env.outputs.env_name}}
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -59,6 +61,7 @@ jobs:
           path: cli
 
       - name: Setup bbl
+        id: setup-bbl-env
         run: |
           env_name="$(grep '^.\{1,4\}$' /usr/share/dict/words |
           shuf -n1 |
@@ -67,18 +70,19 @@ jobs:
 
           echo "${env_name} ======================="
           if [ ! -z "${env_name}" ]; then
-            export ENV_NAME=cli-${env_name}
-            mkdir -p ${ENV_NAME}/bbl-state
+            env_name=cli-${env_name}
+            mkdir -p $env_name/bbl-state
           fi
-
           ls -ltra
+          echo "envName=$env_name" >> $GITHUB_OUTPUT
       - name: Create bbl env
         run: |
           ls -ltra
-          echo "${ENV_NAME} ======================="
-          cd ${ENV_NAME}/bbl-state
+          env_name=${{ steps.setup-bbl-env.outputs.envVame }}
+          echo " $env_name ======================="
+          cd $env_name/bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
-          bbl plan --name ${ENV_NAME}
+          bbl plan --name $env_name
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
