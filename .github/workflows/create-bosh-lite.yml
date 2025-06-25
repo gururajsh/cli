@@ -100,6 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/cf-deployment
+          ref: release-candidate
           path: cf-deployment
       - name: Checkout bosh bootloader
         uses: actions/checkout@v4
@@ -121,22 +122,21 @@ jobs:
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
           SYSTEM_DOMAIN="${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
 
+          bosh delete-deployment
+
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
+          -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-compiled-releases.yml
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/enable-v2-api.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
-          -v system_domain=${SYSTEM_DOMAIN} \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
+          -v system_domain=${SYSTEM_DOMAIN} \
           > ./director.yml
 
           bosh deploy director.yml
-
-          bosh manifest > manifest.yml
-
-          bosh deploy manifest.yml \          
-          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
-          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml
 
       - name: Setup tmate session
         if: always()
