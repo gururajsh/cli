@@ -76,12 +76,14 @@ jobs:
 
       - name: Download file from GCS
         run: |
-          mkdir bbl-state
-          mkdir bbl-state/vars
-          gsutil cp gs://cf-cli-bosh-lites/bbl-state.json ./bbl-state/ 
-          gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml ./bbl-state/vars/
-          gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml ./bbl-state/vars/
-          gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml ./bbl-state/vars/
+          gsutil cp -R gs://cf-cli-bosh-lites/bbl-state . 
+
+          # mkdir bbl-state
+          # mkdir bbl-state/vars
+          # gsutil cp gs://cf-cli-bosh-lites/bbl-state.json ./bbl-state/ 
+          # gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml ./bbl-state/vars/
+          # gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml ./bbl-state/vars/
+          # gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml ./bbl-state/vars/
 
       - name: Run Integration Tests
         env:
