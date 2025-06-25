@@ -60,14 +60,14 @@ jobs:
 
       - name: Setup bbl
         run: |
-          ENV_NAME="$(grep '^.\{1,4\}$' /usr/share/dict/words |
+          env_name="$(grep '^.\{1,4\}$' /usr/share/dict/words |
           shuf -n1 |
           tr -dc '[:alnum:]\n\r' |
           tr '[:upper:]' '[:lower:]')"
 
-          echo "${ENV_NAME} ======================="
-          if [ ! -z "${ENV_NAME}" ]; then
-            ENV_NAME=cli-${ENV_NAME}
+          echo "${env_name} ======================="
+          if [ ! -z "${env_name}" ]; then
+            export ENV_NAME=cli-${env_name}
             mkdir -p ${ENV_NAME}/bbl-state
           fi
 
