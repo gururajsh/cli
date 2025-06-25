@@ -6,7 +6,6 @@ env:
   BBL_IAAS: gcp
   BBL_GCP_REGION: us-east1
   BBL_GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_CREDENTIALS_JSON }}
-  ENV_NAME: env-1
   BOSH_DEPLOYMENT: cf
   BOSH_NON_INTERACTIVE: true
 
@@ -92,7 +91,7 @@ jobs:
         name: Upload bbl state to GCS
         uses: 'google-github-actions/upload-cloud-storage@v2'
         with:
-          path: '${ENV_NAME}/bbl-state'
+          path: '${{ steps.setup-bbl-env.outputs.envName }}/bbl-state'
           destination: 'cf-cli-bosh-lites'
 
     # Example of using the output
@@ -131,11 +130,12 @@ jobs:
         run: |
           cd bbl-state
           eval "$(bbl print-env)"
+          env_name="${{ steps.setup-bbl-env.outputs.envName }}"
           bosh update-runtime-config ${GITHUB_WORKSPACE}/bosh-deployment/runtime-configs/dns.yml --name dns
           STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
           bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
-          SYSTEM_DOMAIN="${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
+          SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
 
           bosh delete-deployment
 
