@@ -65,12 +65,16 @@ jobs:
           tr -dc '[:alnum:]\n\r' |
           tr '[:upper:]' '[:lower:]')"
 
+          echo "${ENV_NAME} ======================="
           if [ ! -z "${ENV_NAME}" ]; then
             ENV_NAME=cli-${ENV_NAME}
             mkdir -p ${ENV_NAME}/bbl-state
           fi
+
+          ls -ltra
       - name: Create bbl env
         run: |
+          ls -ltra
           echo "${ENV_NAME} ======================="
           cd ${ENV_NAME}/bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
