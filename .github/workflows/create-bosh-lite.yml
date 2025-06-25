@@ -78,7 +78,7 @@ jobs:
       - name: Create bbl env
         run: |
           ls -ltra
-          env_name=${{ steps.setup-bbl-env.outputs.envVame }}
+          env_name=${{ steps.setup-bbl-env.outputs.envName }}
           echo " $env_name ======================="
           cd $env_name/bbl-state
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
