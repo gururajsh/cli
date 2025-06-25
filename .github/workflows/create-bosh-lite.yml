@@ -85,7 +85,7 @@ jobs:
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
-          # bbl up
+          bbl up
 
       - id: 'upload-folder'
         name: Upload bbl state to GCS
@@ -95,9 +95,9 @@ jobs:
           destination: 'cf-cli-bosh-lites/${{ steps.setup-bbl-env.outputs.envName }}'
 
     # Example of using the output
-      - id: 'uploaded-files'
-        run: |
-          echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
+      # - id: 'uploaded-files'
+      #   run: |
+      #     echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
 
       - name: Checkout bosh-deployment
         if: false
@@ -126,7 +126,6 @@ jobs:
           gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
           
       - name: Deploy cf
-        if: false
         run: |
           cd bbl-state
           eval "$(bbl print-env)"
@@ -137,7 +136,7 @@ jobs:
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
           SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
 
-          bosh delete-deployment
+          # bosh delete-deployment
 
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
