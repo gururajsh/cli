@@ -122,7 +122,7 @@ jobs:
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
           SYSTEM_DOMAIN="${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
 
-          bosh delete-deployment
+          # bosh delete-deployment
 
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
