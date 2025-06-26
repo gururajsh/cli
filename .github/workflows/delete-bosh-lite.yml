@@ -59,6 +59,7 @@ jobs:
           gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
 
       - name: delete cf
+        if: false
         run: |
           cd ${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
