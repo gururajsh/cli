@@ -92,6 +92,7 @@ jobs:
       - name: Save bbl state
         run: |
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
+          cd $env_name/bbl_state
           gsutil cp bbl-state.json gs://cf-cli-bosh-lites/$env_name/bbl-state/ 
           gsutil cp vars/director-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
