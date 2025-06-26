@@ -8,6 +8,9 @@ env:
   BBL_GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_CREDENTIALS_JSON }}
   BOSH_DEPLOYMENT: cf
   BOSH_NON_INTERACTIVE: true
+  BBL_CLI_VERSION: ${{ vars.BBL_CLI_VERSION }}
+  BOSH_CLI_VERSION: ${{ vars.BOSH_CLI_VERSION }}
+  CREDHUB_CLI_VERSION: ${{ vars.CREDHUB_CLI_VERSION }}
 
 jobs:
   create-env:
@@ -28,19 +31,19 @@ jobs:
           go version
 
           install_location=/usr/local/bin
-          bbl_version=v9.0.35
-          bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
-          credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
+          # bbl_version=v9.0.35
+          # bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
+          # credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
           
-          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/${bbl_version}/bbl-${bbl_version}_linux_amd64 --silent --location --output  $install_location/bbl
+          sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v${BBL_CLI_VERSION}/bbl-v${BBL_CLI_VERSION}_linux_amd64 --silent --location --output  $install_location/bbl
           sudo chmod +x $install_location/bbl
           bbl --version
   
-          sudo curl https://github.com/cloudfoundry/bosh-cli/releases/download/v7.7.2/$bosh_cli_artifact --silent --output $install_location/bosh --location
+          sudo curl https://github.com/cloudfoundry/bosh-cli/releases/download/v${BOSH_CLI_VERSION}/bosh-cli-${BOSH_CLI_VERSION}-linux-amd64 --silent --output $install_location/bosh --location
           sudo chmod +x $install_location/bosh
           bosh --version
   
-          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz
+          sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-amd64-${CREDHUB_CLI_VERSION}.tgz --silent --location --output /tmp/credhub.tgz
           sudo tar -xzf /tmp/credhub.tgz -C $install_location  
           sudo chmod +x $install_location/credhub
           credhub --version
@@ -67,19 +70,18 @@ jobs:
           tr -dc '[:alnum:]\n\r' |
           tr '[:upper:]' '[:lower:]')"
 
-          echo "${env_name} ======================="
           if [ ! -z "${env_name}" ]; then
             env_name=cli-${env_name}
             mkdir -p $env_name/bbl-state
           fi
-          ls -ltra
+          echo "Bbl environment name: $env_name"
           echo "envName=$env_name" >> $GITHUB_OUTPUT
       - name: Create bbl env
         run: |
           ls -ltra
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
-          echo " $env_name ======================="
           cd $env_name/bbl-state
+
           cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
           bbl plan --name $env_name
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
@@ -87,56 +89,45 @@ jobs:
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
           bbl up
 
-      - id: 'upload-folder'
-        name: Upload bbl state to GCS
-        uses: 'google-github-actions/upload-cloud-storage@v2'
-        with:
-          path: '${{ steps.setup-bbl-env.outputs.envName }}/bbl-state'
-          destination: 'cf-cli-bosh-lites/${{ steps.setup-bbl-env.outputs.envName }}'
-
-    # Example of using the output
-      # - id: 'uploaded-files'
-      #   run: |
-      #     echo "files ================= ${{ steps.upload-folder.outputs.uploaded }}"
-
+      - name: Save bbl state
+        run: |
+          env_name=${{ steps.setup-bbl-env.outputs.envName }}
+          gsutil cp bbl-state.json gs://cf-cli-bosh-lites/$env_name/bbl-state/ 
+          gsutil cp vars/director-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
+          gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
+          gsutil cp vars/jumpbox-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
       - name: Checkout bosh-deployment
-        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/bosh-deployment
           path: bosh-deployment
 
       - name: Checkout cf-deployment
-        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/cf-deployment
           ref: release-candidate
           path: cf-deployment
       - name: Checkout bosh bootloader
-        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
       - name: Download state
-        if: false
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
           
       - name: Deploy cf
         run: |
-          cd bbl-state
+          env-name="${{ steps.setup-bbl-env.outputs.envName }}"
+          cd $env-name/bbl-state
           eval "$(bbl print-env)"
-          env_name="${{ steps.setup-bbl-env.outputs.envName }}"
           bosh update-runtime-config ${GITHUB_WORKSPACE}/bosh-deployment/runtime-configs/dns.yml --name dns
           STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
           bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
-          SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
-
-          # bosh delete-deployment
+          SYSTEM_DOMAIN="$env-name.app-runtime-interfaces.ci.cloudfoundry.org"
 
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
