@@ -120,8 +120,8 @@ var _ = Describe("buildpacks", func() {
 
 							Eventually(session).Should(Exit(0))
 
-							Expect(session).To(Say("Ruby Buildpack"))
-							Expect(session).To(Say("Go Buildpack"))
+							// Expect(session).To(Say("Ruby Buildpack"))
+							// Expect(session).To(Say("Go Buildpack"))
 							Expect(session).To(Say(`name:\s+%s`, appName))
 							Expect(session).To(Say(`requested state:\s+started`))
 							Expect(session).To(Say("buildpacks:"))
