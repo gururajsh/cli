@@ -1,6 +1,7 @@
 name: Create environment
 on:
   workflow_dispatch:
+  # workflow_call:
 
 env:
   BBL_IAAS: gcp
@@ -31,10 +32,7 @@ jobs:
           go version
 
           install_location=/usr/local/bin
-          # bbl_version=v9.0.35
-          # bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
-          # credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
-          
+
           sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/v${BBL_CLI_VERSION}/bbl-v${BBL_CLI_VERSION}_linux_amd64 --silent --location --output  $install_location/bbl
           sudo chmod +x $install_location/bbl
           bbl --version
@@ -61,6 +59,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: cli
+          # ref: ${{inputs.gitRef}}
+          fetch-depth: 0
 
       - name: Setup bbl
         id: setup-bbl-env
@@ -87,12 +87,13 @@ jobs:
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
-          bbl up
+          # bbl up
 
       - name: Save bbl state
         run: |
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
-          cd $env_name/bbl_state
+          pwd
+          # cd $env_name/bbl_state
           gsutil cp bbl-state.json gs://cf-cli-bosh-lites/$env_name/bbl-state/ 
           gsutil cp vars/director-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
@@ -118,17 +119,35 @@ jobs:
       - name: Download state
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
+
+      - name: Upload latest CAPI release
+        if: ${{ (vars.USE_LATEST_CAPI == true) || (vars.CAPI_RELEASE_VERSION != '') }}
+        env:
+          capi_release_version: ${{ vars.CAPI_RELEASE_VERSION }}
+        run: |
+          if [ -z "$capi_release_version" ]; then
+            capi_release_version=$(curl -s https://api.github.com/repos/cloudfoundry/capi-release/releases/latest | jq -r .tag_name)
+          fi
           
+          echo "Latest CAPI release is $capi_release_version"
+          
+          env_name="${{ steps.setup-bbl-env.outputs.envName }}"
+          cd $env_name/bbl-state
+          eval "$(bbl print-env)"
+          
+          jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${env_name}.priv
+
+          bosh upload-release "https://bosh.io/d/github.com/cloudfoundry/capi-release?v=$capi_release_version"          
       - name: Deploy cf
         run: |
-          env-name="${{ steps.setup-bbl-env.outputs.envName }}"
-          cd $env-name/bbl-state
+          env_name="${{ steps.setup-bbl-env.outputs.envName }}"
+          cd $env_name/bbl-state
           eval "$(bbl print-env)"
           bosh update-runtime-config ${GITHUB_WORKSPACE}/bosh-deployment/runtime-configs/dns.yml --name dns
           STEMCELL_VERSION=$(bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml --path /stemcells/alias=default/version)
           bosh upload-stemcell "https://bosh.io/d/stemcells/bosh-warden-boshlite-ubuntu-jammy-go_agent?v=${STEMCELL_VERSION}"
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
-          SYSTEM_DOMAIN="$env-name.app-runtime-interfaces.ci.cloudfoundry.org"
+          SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
 
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
@@ -143,8 +162,4 @@ jobs:
           -v system_domain=${SYSTEM_DOMAIN} \
           > ./director.yml
 
-          bosh deploy director.yml
-
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3          
+          bosh deploy director.yml    
