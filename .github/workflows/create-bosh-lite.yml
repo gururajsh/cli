@@ -76,6 +76,7 @@ jobs:
           fi
           echo "Bbl environment name: $env_name"
           echo "envName=$env_name" >> $GITHUB_OUTPUT
+          
       - name: Create bbl env
         run: |
           ls -ltra
@@ -99,9 +100,6 @@ jobs:
           gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           gsutil cp vars/jumpbox-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
 
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3            
       - name: Checkout bosh-deployment
         uses: actions/checkout@v4
         with:
@@ -166,7 +164,6 @@ jobs:
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml ${additional_args} \
-          -o ${GITHUB_WORKSPACE}/cf-deployment/operations/add-persistent-isolation-segment-diego-cell.yml \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           -v system_domain=${SYSTEM_DOMAIN} \
           > ./director.yml
