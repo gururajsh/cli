@@ -58,6 +58,11 @@ jobs:
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
 
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          path: cli
+
       - name: delete cf
         if: false
         run: |
@@ -71,6 +76,13 @@ jobs:
           cd ${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
           
+          sudo bbl plan
+          chmod +x delete-director-override.sh
+          chmod +x delete-jumpbox-override.sh
+          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
+          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
+          cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
+
           bbl down --no-confirm
         
       # - name: delete gcs bucket
