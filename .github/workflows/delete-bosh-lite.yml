@@ -71,7 +71,7 @@ jobs:
           cd ${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
           
-          bbl down
+          bbl down --no-confirm
         
       - name: delete gcs bucket
         run: |
