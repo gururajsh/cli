@@ -87,21 +87,21 @@ jobs:
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
-          # bbl up
+          bbl up
 
       - name: Save bbl state
         run: |
-          set -x
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
-          pwd
-          ls -ltra
           cd ./$env_name/bbl-state
-          ls -ltra
-          tree .
+
           gsutil cp bbl-state.json gs://cf-cli-bosh-lites/$env_name/bbl-state/ 
           gsutil cp vars/director-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           gsutil cp vars/jumpbox-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
+
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3            
       - name: Checkout bosh-deployment
         uses: actions/checkout@v4
         with:
@@ -120,9 +120,9 @@ jobs:
           repository: cloudfoundry/bosh-bootloader
           path: bosh-bootloader
 
-      - name: Download state
-        run: |
-          gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
+      # - name: Download state
+      #   run: |
+      #     gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
 
       - name: Upload latest CAPI release
         if: ${{ (vars.USE_LATEST_CAPI == true) || (vars.CAPI_RELEASE_VERSION != '') }}
@@ -153,6 +153,10 @@ jobs:
           bosh update-cloud-config ${GITHUB_WORKSPACE}/cf-deployment/iaas-support/bosh-lite/cloud-config.yml
           SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
 
+          additional_args=''
+          if [ -n ${{ vars.USE_LATEST_CAPI }} ] || [ -n ${{ vars.CAPI_RELEASE_VERSION }} ]; then
+            additional_args="-o ${GITHUB_WORKSPACE}/cli/.github/ops-files/use-latest-capi.yml"
+          fi
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-compiled-releases.yml \
@@ -160,7 +164,7 @@ jobs:
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
-          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml ${additional_args} \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/add-persistent-isolation-segment-diego-cell.yml \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           -v system_domain=${SYSTEM_DOMAIN} \
