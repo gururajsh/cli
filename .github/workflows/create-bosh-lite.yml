@@ -154,9 +154,10 @@ jobs:
           SYSTEM_DOMAIN="$env_name.app-runtime-interfaces.ci.cloudfoundry.org"
 
           additional_args=''
-          if [ -n ${{ vars.USE_LATEST_CAPI }} ] || [ -n ${{ vars.CAPI_RELEASE_VERSION }} ]; then
+          if [ -n "${{ vars.USE_LATEST_CAPI }}" ] || [ -n "${{ vars.CAPI_RELEASE_VERSION }}" ]; then
             additional_args="-o ${GITHUB_WORKSPACE}/cli/.github/ops-files/use-latest-capi.yml"
           fi
+
           bosh interpolate ${GITHUB_WORKSPACE}/cf-deployment/cf-deployment.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/bosh-lite.yml \
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-compiled-releases.yml \

@@ -73,9 +73,9 @@ jobs:
           
           bbl down --no-confirm
         
-      - name: delete gcs bucket
-        run: |
-          gsutil rm -R gs://cf-cli-bosh-lites/${ENV_NAME} 
+      # - name: delete gcs bucket
+      #   run: |
+      #     gsutil rm -R gs://cf-cli-bosh-lites/${ENV_NAME} 
 
       - name: Setup tmate session
         if: failure()
