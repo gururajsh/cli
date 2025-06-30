@@ -47,7 +47,7 @@ jobs:
 
       - name: Download file from GCS
         run: |
-          gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
+          gsutil -m cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
 
       - name: Checkout cli
         uses: actions/checkout@v4
