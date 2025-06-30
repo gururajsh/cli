@@ -6,6 +6,11 @@ on:
         description: Env name to delete
         required: true
         type: string
+  workflow_call:
+    inputs:
+      env-name:
+        required: true
+        type: string
 
 env:
   BBL_IAAS: gcp
@@ -76,7 +81,8 @@ jobs:
           cd ${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
           
-          sudo bbl plan
+          echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
+          sudo bbl plan --gcp-service-account-key=key.json
           chmod +x delete-director-override.sh
           chmod +x delete-jumpbox-override.sh
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
