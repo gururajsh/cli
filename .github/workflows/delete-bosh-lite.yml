@@ -68,6 +68,11 @@ jobs:
         with:
           path: cli
 
+      - name: Checkout bosh-bootloader
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/bosh-bootloader
+          path: bosh-bootloader          
       - name: delete cf
         if: false
         run: |
@@ -82,6 +87,7 @@ jobs:
           eval "$(bbl print-env)"
           
           echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
+          cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
           sudo bbl plan --gcp-service-account-key=key.json
           chmod +x delete-director-override.sh
           chmod +x delete-jumpbox-override.sh
