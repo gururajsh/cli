@@ -26,14 +26,6 @@ jobs:
     outputs:
       envName: ${{steps.setup-bbl-env.outputs.env_name}}
     steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
-
-      - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-      
       - name: Install Tools
         run: |
           go version
@@ -75,6 +67,14 @@ jobs:
           
           bosh delete-deployment
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
       - name: delete bosh
         run: |
           cd ${ENV_NAME}/bbl-state
@@ -90,6 +90,7 @@ jobs:
           # sudo cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
           # sudo cp ../cli-test/terraform/bbl-template.tf terraform/
           # sudo chmod +r terraform/bbl-template.tf
+          chmod +rx terraform/.terraform/providers/registry.terraform.io/hashicorp/google/6.41.0/linux_amd64/terraform-provider-google_v6.41.0_x5
           bbl down --no-confirm
         
       # - name: delete gcs bucket
