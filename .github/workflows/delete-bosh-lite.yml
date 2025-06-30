@@ -82,15 +82,6 @@ jobs:
           
           echo "Deleting env ${ENV_NAME}"
           echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
-          # cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
-          # sudo bbl plan --gcp-service-account-key=key.json
-          # chmod +x delete-director-override.sh
-          # chmod +x delete-jumpbox-override.sh
-          # cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
-          # cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
-          # sudo cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
-          # sudo cp ../cli-test/terraform/bbl-template.tf terraform/
-          # sudo chmod +r terraform/bbl-template.tf
           chmod +x delete-director-override.sh
           chmod +x delete-jumpbox-override.sh
           chmod +x terraform/.terraform/providers/registry.terraform.io/hashicorp/google/6.41.0/linux_amd64/terraform-provider-google_v6.41.0_x5
@@ -101,5 +92,5 @@ jobs:
       #     gsutil rm -R gs://cf-cli-bosh-lites/${ENV_NAME} 
 
       - name: Setup tmate session
-        if: failure()
+        if: always()
         uses: mxschmitt/action-tmate@v3          
