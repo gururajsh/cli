@@ -92,6 +92,7 @@ jobs:
           # sudo cp ../cli-test/terraform/bbl-template.tf terraform/
           # sudo chmod +r terraform/bbl-template.tf
           chmod +x delete-director-override.sh
+          chmod +x delete-jumpbox-override.sh
           chmod +x terraform/.terraform/providers/registry.terraform.io/hashicorp/google/6.41.0/linux_amd64/terraform-provider-google_v6.41.0_x5
           bbl down --no-confirm --gcp-service-account-key=key.json
         
