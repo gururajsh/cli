@@ -96,7 +96,7 @@ jobs:
       - name: Save bbl state
         run: |
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
-          gsutil cp -R /$env_name/bbl-state gs://cf-cli-bosh-lites/
+          gsutil cp -R ./$env_name/bbl-state gs://cf-cli-bosh-lites/
           # cd ./$env_name/bbl-state 
 
           # gsutil cp bbl-state.json gs://cf-cli-bosh-lites/$env_name/bbl-state/ 
@@ -104,6 +104,9 @@ jobs:
           # gsutil cp vars/director-vars-file.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
           # gsutil cp vars/jumpbox-vars-store.yml gs://cf-cli-bosh-lites/$env_name/bbl-state/vars/
 
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3            
       - name: Checkout cf-deployment
         if: false
         uses: actions/checkout@v4
