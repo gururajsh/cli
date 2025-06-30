@@ -22,16 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       envName: ${{steps.setup-bbl-env.outputs.env_name}}
-    steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
-          create_credentials_file: false
-
-      - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-      
+    steps:      
       - name: Install Tools
         run: |
           go version
@@ -92,6 +83,14 @@ jobs:
           cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
           cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
           bbl up
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
 
       - name: Save bbl state
         run: |
