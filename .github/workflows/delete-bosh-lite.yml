@@ -41,7 +41,6 @@ jobs:
           install_location=/usr/local/bin
           bbl_version=v9.0.35
           bosh_cli_artifact=bosh-cli-7.7.2-linux-amd64
-          # credhub_cli_artifact=credhub-linux-amd64-2.9.45.tgz
           
           sudo curl https://github.com/cloudfoundry/bosh-bootloader/releases/download/${bbl_version}/bbl-${bbl_version}_linux_amd64 --silent --location --output  $install_location/bbl
           sudo chmod +x $install_location/bbl
@@ -51,11 +50,6 @@ jobs:
           sudo chmod +x $install_location/bosh
           bosh --version
   
-          # sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/2.9.45/$credhub_cli_artifact --silent --location --output /tmp/credhub.tgz
-          # sudo tar -xzf /tmp/credhub.tgz -C $install_location  
-          # sudo chmod +x $install_location/credhub
-          # credhub --version
-
           sudo apt update
           sudo apt install -y build-essential unzip wamerican
 
@@ -86,15 +80,16 @@ jobs:
           cd ${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
           
-          echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
-          cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
-          sudo bbl plan --gcp-service-account-key=key.json
-          chmod +x delete-director-override.sh
-          chmod +x delete-jumpbox-override.sh
-          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
-          cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
-          cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
-
+          # echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
+          # cp -R ${GITHUB_WORKSPACE}/bosh-bootloader/plan-patches/bosh-lite-gcp/* .
+          # sudo bbl plan --gcp-service-account-key=key.json
+          # chmod +x delete-director-override.sh
+          # chmod +x delete-jumpbox-override.sh
+          # cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite-dns.tf terraform/
+          # cp ${GITHUB_WORKSPACE}/cli/.github/bosh-lite-files/bosh-lite.tfvars vars/
+          # sudo cp ${GITHUB_WORKSPACE}/cli/.github/ops-files/bosh-lite-vm-type.yml bosh-deployment/gcp/
+          # sudo cp ../cli-test/terraform/bbl-template.tf terraform/
+          # sudo chmod +r terraform/bbl-template.tf
           bbl down --no-confirm
         
       # - name: delete gcs bucket
