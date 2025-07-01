@@ -86,27 +86,22 @@ jobs:
     - name: Download file from GCS
       run: |
         gsutil cp -R gs://cf-cli-bosh-lites/${ENV-NAME}/bbl-state . 
-
-        # mkdir bbl-state
-        # mkdir bbl-state/vars
-        # gsutil cp gs://cf-cli-bosh-lites/bbl-state.json ./bbl-state/ 
-        # gsutil cp gs://cf-cli-bosh-lites/director-vars-store.yml ./bbl-state/vars/
-        # gsutil cp gs://cf-cli-bosh-lites/director-vars-file.yml ./bbl-state/vars/
-        # gsutil cp gs://cf-cli-bosh-lites/jumpbox-vars-store.yml ./bbl-state/vars/    
+  
     - name: Add CATS config
       if: ${{ inputs.name == 'cats' }}
       run: |
         set -eu
-        env_name=$(jq -r .name metadata.json)
-        API="$(jq -r .cf.api_url metadata.json)"
+
+        pushd ./${ENV-NAME}/bbl-state
+          eval "$(bbl print-env)"
+        popd
+
+        cd cli
+        API="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
+
         DOMAIN=$(echo $API | sed "s/^api\.//")
         CF_INT_USERNAME="admin"
-
-        jq -r .bosh.jumpbox_private_key metadata.json > /tmp/${env_name}.priv
-        eval "$(bbl print-env --metadata-file ./metadata.json)"
-
-        credhub login
-        CF_INT_PASSWORD=$(credhub get -n /bosh-lite/cf/cf_admin_password | bosh interpolate --path /value -)
+        CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
 
         cat << EOF | jq -S . > cats_config.json
         {
@@ -194,10 +189,10 @@ jobs:
         popd
 
         cd cli
-        export CF_INT_PASSWORD="$(credhub get -n /bosh-lite/cf/cf_admin_password | bosh interpolate --path /value -)"
+        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
-        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-lite/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        API_URL="$(jq -r .cf.api_url metadata.json)"
+        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
+        API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
         export CF_INT_API="https://$API_URL"
         export CF_DIAL_TIMEOUT=15
         export CF_USERNAME=admin
@@ -226,10 +221,10 @@ jobs:
         popd
 
         cd cli
-        export CF_INT_PASSWORD="$(credhub get -n /bosh-lite/cf/cf_admin_password | bosh interpolate --path /value -)"
+        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
-        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-lite/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        API_URL="$(jq -r .cf.api_url metadata.json)"
+        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
+        API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
         export CF_INT_API="https://$API_URL"
         export CF_DIAL_TIMEOUT=15
         export CF_USERNAME=admin
