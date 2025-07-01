@@ -74,14 +74,13 @@ jobs:
         with:
           ref: ${{needs.get-sha.outputs.gitRef}}
           fetch-depth: 0
-      - name: Set Up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          check-latest: true
-      - name: Run Units
-        if: false
-        run: make units
+      # - name: Set Up Go
+      #   uses: actions/setup-go@v5
+      #   with:
+      #     go-version-file: go.mod
+      #     check-latest: true
+      # - name: Run Units
+      #   run: make units
 
   create-cf-env:
     name: Create bosh lite env
@@ -99,7 +98,7 @@ jobs:
       - create-cf-env
     outputs:
       env-name: ${{ inputs.env-name || steps.set-name.outputs.env-name}}
-    if: ${{ inputs.env-name == '' }}
+    if: always()
     steps:
       - name: set env name
         id: set-name
