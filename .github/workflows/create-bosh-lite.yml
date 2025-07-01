@@ -98,7 +98,8 @@ jobs:
 
       - name: Setup tmate session
         if: failure()
-        uses: mxschmitt/action-tmate@v3            
+        uses: mxschmitt/action-tmate@v3
+
       - name: Checkout cf-deployment
         uses: actions/checkout@v4
         with:
@@ -106,6 +107,12 @@ jobs:
           ref: release-candidate
           path: cf-deployment
 
+      - name: Checkout bosh-deployment
+        uses: actions/checkout@v4
+        with:
+          repository: cloudfoundry/bosh-deployment
+          path: bosh-deployment
+                
       - name: Upload latest CAPI release
         if: ${{ (vars.USE_LATEST_CAPI == true) || (vars.CAPI_RELEASE_VERSION != '') }}
         env:
