@@ -97,15 +97,17 @@ jobs:
     needs:
       - create-cf-env
     outputs:
-      env-name: ${{ inputs.env-name || steps.set-name.outputs.env-name}}
+      env-name: ${{ steps.set-name.outputs.env-name }}
     if: always()
     steps:
       - name: set env name
         id: set-name
         run: |
-          echo "input ============= ${{inputs.env-name}}"
-          echo "needs ============= ${{needs.create-cf-env.outputs.env-name}}"
-          echo "env-name=${{needs.create-cf-env.outputs.env-name}}" >> $GITHUB_OUTPUT
+          if [[ -n "${{ inputs.env-name }}" ]]; then
+            echo "env-name=${{ inputs.env-name }}" >> $GITHUB_OUTPUT
+          else
+            echo "env-name=${{ needs.create-cf-env.outputs.env-name }}" >> $GITHUB_OUTPUT
+          fi
 
   run-integration-tests-cf-env:
     name: Integration tests
