@@ -69,10 +69,9 @@ jobs:
         sudo chmod +x $install_location/bosh
         bosh --version
 
-        sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-amd64-${CREDHUB_CLI_VERSION}.tgz --silent --output /tmp/$credhub_artifact --location
-        tar xzvf /tmp/$credhub_artifact
-        mv credhub $install_location/credhub
-        chmod +x $install_location/credhub
+        sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-amd64-${CREDHUB_CLI_VERSION}.tgz --silent --location --output /tmp/credhub.tgz
+        sudo tar -xzf /tmp/credhub.tgz -C $install_location  
+        sudo chmod +x $install_location/credhub
         credhub --version
 
         apt-get update
@@ -243,3 +242,7 @@ jobs:
         cf auth
 
         make integration-tests-ci-client-creds
+
+    - name: Setup tmate session
+      if: failure()
+      uses: mxschmitt/action-tmate@v3        

@@ -92,18 +92,32 @@ jobs:
     uses: ./.github/workflows/create-bosh-lite.yml
     secrets: inherit
 
+  set-env-name:
+    name: Update env name
+    runs-on: ubuntu-latest
+    needs:
+      - create-cf-env
+    outputs:
+      env-name: ${{ inputs.env-name || steps.set-name.outputs.env-name}}
+    if: ${{ inputs.env-name == '' }}
+    steps:
+      - name: set env name
+        id: set-name
+        run: |
+          echo "env-name=${{needs.create-cf-env.outputs.env-name}}" >> $GITHUB_OUTPUT
+
   run-integration-tests-cf-env:
     name: Integration tests
     needs:
       - get-sha
       - units
-      - create-cf-env
-    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') }}
+      - set-env-name
+    if: ${{ inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration
       gitRef: ${{needs.get-sha.outputs.gitRef}}
-      env-name: ${{ inputs.env-name || needs.create-cf-env.outputs.env-name }}
+      env-name: ${{ needs.set-env-name.outputs.env-name }}
     secrets: inherit
 
   run-integration-tests-cf-env-with-client-creds:
@@ -111,12 +125,12 @@ jobs:
     needs:
       - get-sha
       - units
-      - create-cf-env
-    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') }}
+      - set-env-name
+    if: ${{ inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration client creds
-      env-name: ${{ inputs.env-name || needs.create-cf-env.outputs.env-name }}
+      env-name: ${{ needs.set-env-name.outputs.env-name }}
       gitRef: ${{needs.get-sha.outputs.gitRef}}
     secrets: inherit
 
@@ -124,24 +138,24 @@ jobs:
     name: CATS
     needs:
       - get-sha
-      - create-cf-env
+      - set-env-name
       - run-integration-tests-cf-env
       - run-integration-tests-cf-env-with-client-creds
-    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-cats-cf-env') }}
+    if: ${{ inputs.workflow == 'all' || inputs.workflow == 'run-cats-cf-env' }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: cats
       gitRef: ${{needs.get-sha.outputs.gitRef}}
-      env-name: ${{ inputs.env-name || needs.create-cf-env.outputs.env-name }}
+      env-name: ${{ needs.set-env-name.outputs.env-name }}
     secrets: inherit
 
   delete-env:
     name: Unclaim environment
     if: ${{ inputs.env-name == '' }}
     needs:
-      - create-cf-env
+      - set-env-name
       - run-cats-cf-env
     uses: ./.github/workflows/delete-bosh-lite.yml
     with:
-      env-name: ${{ needs.create-cf-env.outputs.env-name }}
+      env-name: ${{ needs.set-env-name.outputs.env-name }}
     secrets: inherit
