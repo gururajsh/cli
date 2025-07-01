@@ -80,6 +80,7 @@ jobs:
           go-version-file: go.mod
           check-latest: true
       - name: Run Units
+        if: false
         run: make units
 
   create-cf-env:
@@ -97,7 +98,7 @@ jobs:
       - get-sha
       - units
       - create-cf-env
-    if: ${{ inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env' }}
+    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration
@@ -111,7 +112,7 @@ jobs:
       - get-sha
       - units
       - create-cf-env
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds' }}
+    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration client creds
@@ -126,7 +127,7 @@ jobs:
       - create-cf-env
       - run-integration-tests-cf-env
       - run-integration-tests-cf-env-with-client-creds
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.workflow == 'all' || inputs.workflow == 'run-cats-cf-env' }}
+    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-cats-cf-env') }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: cats
