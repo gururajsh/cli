@@ -73,7 +73,6 @@ jobs:
 
       - name: Create bbl env
         run: |
-          ls -ltra
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
           cd $env_name/bbl-state
 
@@ -101,16 +100,11 @@ jobs:
         if: failure()
         uses: mxschmitt/action-tmate@v3            
       - name: Checkout cf-deployment
-        if: false
         uses: actions/checkout@v4
         with:
           repository: cloudfoundry/cf-deployment
           ref: release-candidate
           path: cf-deployment
-
-      # - name: Download state
-      #   run: |
-      #     gsutil cp -R gs://cf-cli-bosh-lites/bbl-state .
 
       - name: Upload latest CAPI release
         if: ${{ (vars.USE_LATEST_CAPI == true) || (vars.CAPI_RELEASE_VERSION != '') }}
@@ -131,7 +125,6 @@ jobs:
 
           bosh upload-release "https://bosh.io/d/github.com/cloudfoundry/capi-release?v=$capi_release_version"          
       - name: Deploy cf
-        if: false
         run: |
           env_name="${{ steps.setup-bbl-env.outputs.envName }}"
           cd $env_name/bbl-state
