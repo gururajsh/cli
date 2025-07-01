@@ -72,7 +72,7 @@ jobs:
         sudo curl https://github.com/cloudfoundry/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-amd64-${CREDHUB_CLI_VERSION}.tgz --silent --location --output /tmp/credhub.tgz
         sudo tar -xzf /tmp/credhub.tgz -C $install_location  
         sudo chmod +x $install_location/credhub
-        credhub --version
+        # credhub --version
 
         apt-get update
         apt-get install -y build-essential unzip
