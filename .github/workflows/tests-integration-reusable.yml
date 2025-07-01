@@ -49,7 +49,7 @@ jobs:
     - name: Set Up Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: go.mod
+        go-version-file: cli/go.mod
         check-latest: true
 
     - name: Install Tools
