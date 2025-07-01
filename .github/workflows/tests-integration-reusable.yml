@@ -87,7 +87,7 @@ jobs:
 
     - name: Download file from GCS
       run: |
-        gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME}/bbl-state . 
+        gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
   
     - name: Add CATS config
       if: ${{ inputs.name == 'cats' }}
