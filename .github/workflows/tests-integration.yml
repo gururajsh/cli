@@ -95,6 +95,8 @@ jobs:
     name: Update env name
     runs-on: ubuntu-latest
     needs:
+      - get-sha
+      - units
       - create-cf-env
     outputs:
       env-name: ${{ steps.set-name.outputs.env-name }}
