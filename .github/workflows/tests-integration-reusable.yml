@@ -14,7 +14,7 @@ on:
         default: ${{github.event.workflow_run.head_sha}}
 
 env:
-  ENV-NAME: ${{ inputs.env-name }}
+  ENV_NAME: ${{ inputs.env-name }}
   NODES: 16
   FLAKE_ATTEMPTS: ${{ vars.TEST_FLAKE_ATTEMPTS || '4' }}
   BBL_CLI_VERSION: ${{ vars.BBL_CLI_VERSION }}
@@ -87,23 +87,23 @@ jobs:
 
     - name: Download file from GCS
       run: |
-        gsutil cp -R gs://cf-cli-bosh-lites/${{ inputs.env-name }}/bbl-state . 
+        gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME}/bbl-state . 
   
     - name: Add CATS config
       if: ${{ inputs.name == 'cats' }}
       run: |
         set -eu
 
-        pushd ./${ENV-NAME}/bbl-state
+        pushd ./${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
         popd
 
         cd cli
-        API="api.${ENV-NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
+        API="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
 
         DOMAIN=$(echo $API | sed "s/^api\.//")
         CF_INT_USERNAME="admin"
-        CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV-NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
+        CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
 
         cat << EOF | jq -S . > cats_config.json
         {
@@ -186,15 +186,15 @@ jobs:
     - name: Run Integration Tests
       if: ${{ !inputs.run-with-client-creds  &&  inputs.name != 'cats' }}
       run: |
-        pushd ./${ENV-NAME}/bbl-state
+        pushd ./${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
         popd
 
         cd cli
-        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV-NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
+        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
-        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV-NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        API_URL="api.${ENV-NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
+        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
+        API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
         export CF_INT_API="https://$API_URL"
         export CF_DIAL_TIMEOUT=15
         export CF_USERNAME=admin
@@ -218,15 +218,15 @@ jobs:
         CF_INT_CLIENT_ID: 'potato-face'
         CF_INT_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
       run: |
-        pushd ./${ENV-NAME}/bbl-state
+        pushd ./${ENV_NAME}/bbl-state
           eval "$(bbl print-env)"
         popd
 
         cd cli
-        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV-NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
+        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
         export CF_INT_OIDC_USERNAME="admin-oidc"
-        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV-NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        API_URL="api.${ENV-NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
+        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
+        API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
         export CF_INT_API="https://$API_URL"
         export CF_DIAL_TIMEOUT=15
         export CF_USERNAME=admin
