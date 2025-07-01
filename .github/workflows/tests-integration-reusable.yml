@@ -89,6 +89,15 @@ jobs:
       run: |
         gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
   
+    - name: Cleanup env
+      run: |
+        pushd ./${ENV_NAME}/bbl-state
+          eval "$(bbl print-env)"
+        popd
+
+        cd cli
+        make integration-cleanup
+        
     - name: Add CATS config
       if: ${{ inputs.name == 'cats' }}
       run: |
@@ -206,7 +215,7 @@ jobs:
 
 
         make build
-
+          
         cf api ${CF_INT_API} --skip-ssl-validation
         cf auth
 
