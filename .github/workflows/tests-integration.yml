@@ -42,8 +42,8 @@ on:
       - ".gitpod.yml"
       - "README.md"
 
-env:
-  ENV_NAME: ${{ inputs.env-name }}
+# env:
+#   ENV_NAME: ${{ inputs.env-name }}
 
 jobs:
   get-sha:
@@ -103,6 +103,8 @@ jobs:
       - name: set env name
         id: set-name
         run: |
+          echo "input ============= ${{inputs.env-name}}"
+          echo "needs ============= ${{needs.create-cf-env.outputs.env-name}}"
           echo "env-name=${{needs.create-cf-env.outputs.env-name}}" >> $GITHUB_OUTPUT
 
   run-integration-tests-cf-env:
