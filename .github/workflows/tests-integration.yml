@@ -176,7 +176,12 @@ jobs:
       # - units
       - set-env-name
       - cleanup-env
-    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') }}
+    if: |-
+      |-
+      ${{
+        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') 
+        && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
+      }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration client creds
