@@ -127,7 +127,8 @@ jobs:
 
       - name: Cleanup Environment
         run: |
-          echo "Cleaning up environment ${needs.set-env-name.outputs.env-name}"
+          ENV_NAME="${{ needs.set-env-name.outputs.env-name }}"
+          echo "Cleaning up environment $ENV_NAME"
           pushd ./${ENV_NAME}/bbl-state
             eval "$(bbl print-env)"
           popd
@@ -156,7 +157,11 @@ jobs:
       # - units
       - set-env-name
       - cleanup-env
-    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') }}
+    if: |-
+      ${{
+        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') 
+        && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
+      }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration
