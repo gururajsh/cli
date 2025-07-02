@@ -96,10 +96,6 @@ jobs:
           env_name=${{ steps.setup-bbl-env.outputs.envName }}
           gsutil cp -R ./$env_name gs://cf-cli-bosh-lites/
 
-      - name: Setup tmate session
-        if: failure()
-        uses: mxschmitt/action-tmate@v3
-
       - name: Checkout cf-deployment
         uses: actions/checkout@v4
         with:
@@ -112,7 +108,7 @@ jobs:
         with:
           repository: cloudfoundry/bosh-deployment
           path: bosh-deployment
-                
+
       - name: Upload latest CAPI release
         if: ${{ (vars.USE_LATEST_CAPI == true) || (vars.CAPI_RELEASE_VERSION != '') }}
         env:
@@ -154,9 +150,35 @@ jobs:
           -o ${GITHUB_WORKSPACE}/cf-deployment/operations/use-internal-lookup-for-route-services.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/diego-cell-instances.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-uaa-client-credentials.yml \
+          -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/increase-route-registration-interval.yml \
           -o ${GITHUB_WORKSPACE}/cli/.github/ops-files/add-oidc-provider.yml ${additional_args} \
           -v client-secret="${{ secrets.CLIENT_SECRET }}" \
           -v system_domain=${SYSTEM_DOMAIN} \
           > ./director.yml
 
           bosh deploy director.yml    
+
+      - name: delete bosh
+        if: failure()
+        run: |
+          env_name="${{ steps.setup-bbl-env.outputs.envName }}"
+          if [ -d ${env_name}/bbl_state ]; then
+            cd ${env_name}/bbl-state
+            eval "$(bbl print-env)"
+            
+            echo "Deleting env ${env_name}"
+            # echo ${BBL_GCP_SERVICE_ACCOUNT_KEY} > key.json
+            # chmod +x delete-director-override.sh
+            # chmod +x delete-jumpbox-override.sh
+            # chmod +x terraform/.terraform/providers/registry.terraform.io/hashicorp/google/6.41.0/linux_amd64/terraform-provider-google_v6.41.0_x5
+            bbl down --no-confirm --gcp-service-account-key=key.json
+
+            echo "Deleting bbl state directory"
+            if gsutil ls gs://cf-cli-bosh-lites | grep -q /${env_name}/; then
+              gsutil rm -R gs://cf-cli-bosh-lites/${env_name} 
+            fi
+          fi
+
+      - name: Setup tmate session
+        if: failure()
+        uses: mxschmitt/action-tmate@v3          
