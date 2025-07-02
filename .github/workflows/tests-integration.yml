@@ -125,6 +125,10 @@ jobs:
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
 
+      - name: Download file from GCS
+        run: |
+          gsutil cp -R gs://cf-cli-bosh-lites/${{ needs.set-env-name.outputs.env-name }}/bbl-state .
+          
       - name: Cleanup Environment
         run: |
           ENV_NAME="${{ needs.set-env-name.outputs.env-name }}"
@@ -176,8 +180,7 @@ jobs:
       # - units
       - set-env-name
       - cleanup-env
-    if: |-
-      |-
+    if: |
       ${{
         always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') 
         && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
