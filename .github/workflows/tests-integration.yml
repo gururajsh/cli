@@ -128,7 +128,7 @@ jobs:
       - name: Download file from GCS
         run: |
           gsutil cp -R gs://cf-cli-bosh-lites/${{ needs.set-env-name.outputs.env-name }}/bbl-state .
-          
+
       - name: Cleanup Environment
         run: |
           ENV_NAME="${{ needs.set-env-name.outputs.env-name }}"
@@ -171,6 +171,7 @@ jobs:
       name: Integration
       gitRef: ${{needs.get-sha.outputs.gitRef}}
       env-name: ${{ needs.set-env-name.outputs.env-name }}
+      run-with-client-creds: false
     secrets: inherit
 
   run-integration-tests-cf-env-with-client-creds:
@@ -190,6 +191,7 @@ jobs:
       name: Integration client creds
       env-name: ${{ needs.set-env-name.outputs.env-name }}
       gitRef: ${{needs.get-sha.outputs.gitRef}}
+      run-with-client-creds: true
     secrets: inherit
 
   run-cats-cf-env:
@@ -205,6 +207,7 @@ jobs:
       name: cats
       gitRef: ${{needs.get-sha.outputs.gitRef}}
       env-name: ${{ needs.set-env-name.outputs.env-name }}
+      run-with-client-creds: false
     secrets: inherit
 
   delete-env:
