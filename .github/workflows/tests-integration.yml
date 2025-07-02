@@ -1,14 +1,3 @@
-# GitHub repo level Secrets and Variables
-
-# secrets.CLIENT_SECRET
-# secrets.SHEPHERD_SERVICE_ACCOUNT_TOKEN
-# vars.CAPI_RELEASE_VERSION
-# vars.SHEPHERD_LEASE_DURATION
-# vars.SHEPHERD_LEASE_NAMESPACE
-# vars.SHEPHERD_TEMPLATE_ARGUMENT
-# vars.SHEPHERD_TEMPLATE_NAME
-# vars.SHEPHERD_TEMPLATE_NAMESPACE
-
 name: "Tests: Integration"
 
 run-name: "Integration [${{ github.event_name }}: ${{ github.event.pull_request.head.sha || github.event.push.after || github.event.workflow_run.head_sha}}]: ${{ github.event.workflow_run.head_commit.message }}"
@@ -41,9 +30,6 @@ on:
       - "doc/**"
       - ".gitpod.yml"
       - "README.md"
-
-# env:
-#   ENV_NAME: ${{ inputs.env-name }}
 
 jobs:
   get-sha:
@@ -110,62 +96,13 @@ jobs:
           else
             echo "env-name=${{ needs.create-cf-env.outputs.env-name }}" >> $GITHUB_OUTPUT
           fi
-  cleanup-env:
-    name: Cleanup environment
-    runs-on: ubuntu-latest
-    if: ${{ always() && inputs.env-name != '' }}
-    needs:
-      - set-env-name
-    steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
-
-      - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Download file from GCS
-        run: |
-          gsutil cp -R gs://cf-cli-bosh-lites/${{ needs.set-env-name.outputs.env-name }} .
-
-      - name: Cleanup Environment
-        run: |
-          ENV_NAME="${{ needs.set-env-name.outputs.env-name }}"
-          echo "Cleaning up environment $ENV_NAME"
-          pushd ./${ENV_NAME}/bbl-state
-            eval "$(bbl print-env)"
-          popd
-
-          cd cli
-          export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
-          # export CF_INT_OIDC_USERNAME="admin-oidc"
-          # export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-          API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
-          export CF_INT_API="https://$API_URL"
-          # export CF_DIAL_TIMEOUT=15
-          export CF_USERNAME=admin
-          export GOPATH=$PWD/go
-          export PATH="$GOPATH/bin:$PATH"
-          export PATH="$PWD/out:$PATH"
-          # export CF_INT_TEST_NAME="int"
-          export CF_PASSWORD=${CF_INT_PASSWORD}
-
-          make build
-          make integration-cleanup
 
   run-integration-tests-cf-env:
     name: Integration tests
     needs:
       - get-sha
-      # - units
       - set-env-name
-      - cleanup-env
-    if: |-
-      ${{
-        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') 
-        && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
-      }}
+    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration
@@ -178,14 +115,8 @@ jobs:
     name: Client credentials
     needs:
       - get-sha
-      # - units
       - set-env-name
-      - cleanup-env
-    if: |
-      ${{
-        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') 
-        && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
-      }}
+    if: ${{ always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') }}
     uses: ./.github/workflows/tests-integration-reusable.yml
     with:
       name: Integration client creds
