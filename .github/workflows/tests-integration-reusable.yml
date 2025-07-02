@@ -88,29 +88,6 @@ jobs:
     - name: Download file from GCS
       run: |
         gsutil cp -R gs://cf-cli-bosh-lites/${ENV_NAME} . 
-  
-    - name: Cleanup env
-      run: |
-        pushd ./${ENV_NAME}/bbl-state
-          eval "$(bbl print-env)"
-        popd
-
-        cd cli
-        export CF_INT_PASSWORD="$(credhub get -n /bosh-${ENV_NAME}/cf/cf_admin_password | bosh interpolate --path /value -)"
-        export CF_INT_OIDC_USERNAME="admin-oidc"
-        export CF_INT_OIDC_PASSWORD=$(credhub get -n /bosh-${ENV_NAME}/cf/uaa_oidc_admin_password | bosh interpolate --path /value -)
-        API_URL="api.${ENV_NAME}.app-runtime-interfaces.ci.cloudfoundry.org"
-        export CF_INT_API="https://$API_URL"
-        export CF_DIAL_TIMEOUT=15
-        export CF_USERNAME=admin
-        export GOPATH=$PWD/go
-        export PATH="$GOPATH/bin:$PATH"
-        export PATH="$PWD/out:$PATH"
-        export CF_INT_TEST_NAME="int"
-        export CF_PASSWORD=${CF_INT_PASSWORD}
-
-        make integration-cleanup
-        
 
     - name: Add CATS config
       if: ${{ inputs.name == 'cats' }}
