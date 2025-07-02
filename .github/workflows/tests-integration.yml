@@ -127,7 +127,7 @@ jobs:
 
       - name: Download file from GCS
         run: |
-          gsutil cp -R gs://cf-cli-bosh-lites/${{ needs.set-env-name.outputs.env-name }}/bbl-state .
+          gsutil cp -R gs://cf-cli-bosh-lites/${{ needs.set-env-name.outputs.env-name }} .
 
       - name: Cleanup Environment
         run: |
@@ -183,7 +183,7 @@ jobs:
       - cleanup-env
     if: |
       ${{
-        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env') 
+        always() && (inputs.workflow == 'all' || inputs.workflow == 'run-integration-tests-cf-env-with-client-creds') 
         && (needs.cleanup-env.result == 'success' || needs.cleanup-env.result == 'skipped')
       }}
     uses: ./.github/workflows/tests-integration-reusable.yml
