@@ -21,7 +21,7 @@ jobs:
   create-env:
     runs-on: ubuntu-latest
     outputs:
-      envName: ${{steps.setup-bbl-env.outputs.env_name}}
+      envName: ${{steps.setup-bbl-env.outputs.envName}}
     steps:      
       - name: Install Tools
         run: |

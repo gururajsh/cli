@@ -5,4 +5,4 @@
   value: n2-standard-8
 - type: replace
   path: /disk_pools/name=disks/disk_size
-  value: 150000
+  value: 175000
