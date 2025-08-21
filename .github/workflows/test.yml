@@ -45,7 +45,9 @@ jobs:
         set -ex
 
         pushd CLAW
-          cat test > test123.txt
+          cat <<EOF > test123.txt
+          Hello
+          EOF
           git add test123.txt
           git config user.name github-actions
           git config user.email github-actions@github.com
