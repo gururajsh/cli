@@ -48,8 +48,8 @@ jobs:
           pwd > test123.txt
          
           git add test123.txt
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name cf-cli-eng
+          git config user.email cf-cli-eng@pivotal.io
           git commit -m "Add test file"
           git push
         popd
