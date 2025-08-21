@@ -36,9 +36,9 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: cloudfoundry/CLAW
-        ref: master
+        ref: test-release-update
         path: CLAW
-        ssh-key: ${{ secrets.GIT_SSH_KEY_CLAW }}
+        ssh-key: ${{ secrets.GIT_CLI_BOT_SSH_KEY }}
 
     - name: Add new version to claw variables
       run: |
