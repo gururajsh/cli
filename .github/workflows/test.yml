@@ -45,7 +45,7 @@ jobs:
         set -ex
 
         pushd CLAW
-          pwd > test123.txt
+          pwd >> test123.txt
          
           git add test123.txt
           git config user.name cf-cli-eng
