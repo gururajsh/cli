@@ -45,12 +45,11 @@ jobs:
         set -ex
 
         pushd CLAW
-          cat <<EOF > test123.txt
-          Hello
-          EOF
+          pwd > test123.txt
+         
           git add test123.txt
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -m "Add CF CLI ${VERSION_BUILD}"
+          git commit -m "Add test file"
           git push
         popd
