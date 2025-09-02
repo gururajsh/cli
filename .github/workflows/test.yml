@@ -16,50 +16,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Configure AWS Credentials 1
-      id: creds
+    - name: Setup aws to upload installers to CLAW S3 bucket
       uses: aws-actions/configure-aws-credentials@v4
+      env:
+        AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_ROLE_ARN:       ${{ secrets.AWS_S3_ROLE_ARN }}
       with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: us-west-1
-        role-to-assume: ${{ secrets.AWS_S3_ROLE_ARN }}
-        output-credentials: true
-    - name: get caller identity 1
-      run: |
-        aws sts get-caller-identity
-    - name: Configure AWS Credentials 2
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-region: us-east-2
-        aws-access-key-id: ${{ steps.creds.outputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ steps.creds.outputs.aws-secret-access-key }}
-        aws-session-token: ${{ steps.creds.outputs.aws-session-token }}
-        role-to-assume: ${{ secrets.AWS_S3_ROLE_ARN }}
-        
-    - name: get caller identity2
-      run: |
-        aws sts get-caller-identity
-    # - name: Setup aws to upload installers to CLAW S3 bucket
-    #   uses: aws-actions/configure-aws-credentials@v4
-    #   env:
-    #     AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     AWS_S3_ROLE_ARN:       ${{ secrets.AWS_S3_ROLE_ARN }}
-    #   with:
-    #     aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-    #     aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-    #     aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-    #     aws-region: us-west-1
-    #     role-to-assume: ${{ env.AWS_S3_ROLE_ARN }}
-    #     role-skip-session-tagging: true
-    #     role-duration-seconds: 1200
+        role-to-assume: ${{ env.AWS_S3_ROLE_ARN }}
+        role-skip-session-tagging: true
+        role-duration-seconds: 1200
 
-    # - name: Upload installers to CLAW S3 bucket
-    #   run: |
-    #     touch test123.txt
-    #     aws s3 sync upload "s3://cf-cli-dev/"
+    - name: Upload installers to CLAW S3 bucket
+      run: |
+        touch test123.txt
+        aws s3 sync upload "s3://cf-cli-dev/"
 
-    # - name: list S3 for human verification
-    #   run: aws s3 ls "s3://cf-cli-dev/"    
+    - name: list S3 for human verification
+      run: aws s3 ls "s3://cf-cli-dev/"    
+      
   create-draft-release:
     name: Draft release
     if: false
