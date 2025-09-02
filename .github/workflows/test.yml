@@ -34,7 +34,7 @@ jobs:
       run: |
         pwd
         pwd > test123.txt
-        aws s3 sync test123.txt "s3://cf-cli-dev/"
+        aws s3 cp test123.txt "s3://cf-cli-dev/"
 
     - name: list S3 for human verification
       run: aws s3 ls "s3://cf-cli-dev/"    
