@@ -32,7 +32,8 @@ jobs:
 
     - name: Upload installers to CLAW S3 bucket
       run: |
-        touch test123.txt
+        ls
+        ls > test123.txt
         aws s3 sync test123.txt "s3://cf-cli-dev/"
 
     - name: list S3 for human verification
