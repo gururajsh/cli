@@ -25,7 +25,6 @@ jobs:
       with:
         aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: us-west-1
         role-to-assume: ${{ env.AWS_S3_ROLE_ARN }}
         role-skip-session-tagging: true
@@ -38,7 +37,7 @@ jobs:
 
     - name: list S3 for human verification
       run: aws s3 ls "s3://cf-cli-dev/"    
-      
+
   create-draft-release:
     name: Draft release
     if: false
