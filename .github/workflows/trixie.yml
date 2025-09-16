@@ -1,0 +1,43 @@
+name: Run Trixie commands
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-in-trixie:
+    runs-on: ubuntu-latest
+
+    # Define a Docker-in-Docker service container
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Docker CLI
+        # The main runner needs the CLI to communicate with the 'docker' service
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      - name: Wait for Docker to be ready
+        # A short wait might be needed for the dind service to initialize
+        run: |
+          until docker info; do
+            echo "Waiting for Docker daemon..."
+            sleep 1
+          done
+          echo "Docker is ready."
+
+      - name: debug
+        if: always()
+        uses: mxschmitt/action-tmate@v3
+
+      - name: Run commands in a Debian Trixie container
+        run: |
+          # The 'docker' command now talks to the dind service container
+          docker run --rm debian:trixie cat /etc/os-release
+          docker run --rm debian:trixie bash -c "apt-get update && apt-get install -y cowsay && cowsay 'Hello from GHA and Trixie!'"
