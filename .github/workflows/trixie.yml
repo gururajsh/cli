@@ -21,6 +21,10 @@ jobs:
         # The main runner needs the CLI to communicate with the 'docker' service
         run: |
           sudo apt-get update
+          sudo apt-get remove docker docker-engine docker.io containerd runc
+          sudo apt-get purge docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+          sudo rm -rf /etc/bash_completion.d/docker /usr/local/bin/docker-compose /etc/bash_completion.d/docker-compose
+          
           sudo apt-get install -y docker.io
 
       - name: Wait for Docker to be ready
@@ -35,6 +39,10 @@ jobs:
       - name: debug
         if: always()
         uses: mxschmitt/action-tmate@v3
+        # with:
+        #   # Your docker commands can be run from here
+        #   # You will need to SSH in to control the session
+        #   args: docker run -it --name trixie-debug debian:trixie /bin/bash
 
       - name: Run commands in a Debian Trixie container
         run: |
