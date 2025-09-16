@@ -39,6 +39,10 @@ jobs:
     - name: list S3 for human verification
       run: aws s3 ls "s3://cf-cli-dev/"    
 
+    - name: debug
+      if: always()
+      uses: mxschmitt/action-tmate@v3
+      
   create-draft-release:
     name: Draft release
     if: false
