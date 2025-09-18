@@ -40,7 +40,7 @@ jobs:
         # set -o pipefail -e
 
         apt update
-        apt install -y wget gnupg
+        apt install -y wget gnupg curl
 
         # wget -q -O /usr/share/keyrings/cloudfoundry-archive-keyring.gpg ${CLAW_URL}/debian/cli.cloudfoundry.org.key
         # echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
