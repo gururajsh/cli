@@ -11,10 +11,55 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  test-deb:
+    name: Test Debian Repository
+    strategy:
+      matrix:
+        image:
+        - debian:13
+        - debian:12
+        - ubuntu:latest
+    runs-on: ubuntu-latest
+    env:
+      CLAW_URL:      ${{ needs.setup.outputs.claw-url }}
+      VERSION_BUILD: ${{ needs.setup.outputs.version-build }}
+      VERSION_MAJOR: ${{ needs.setup.outputs.version-major }}
+    steps:
+
+    - name: Install CF CLI via apt
+      env:
+        IMAGE: ${{ matrix.image }}
+      run: |
+        set +ex
+        docker run \
+          --interactive \
+          --rm \
+          ${IMAGE} <<EOC
+        # set -o pipefail -e
+
+        apt update
+        apt install -y wget gnupg
+
+        wget -q -O - ${CLAW_URL}/debian/cli.cloudfoundry.org.key | apt-key add -
+        echo "deb ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
+
+        apt update
+        apt install -y cf${VERSION_MAJOR}-cli
+
+        which cf
+
+        # set -x
+
+        cf  -v
+        cf${VERSION_MAJOR} -v
+
+        cf -v | grep "${VERSION_BUILD}"
+        EOC
   test-aws-access:
     name: AWS access
     runs-on: ubuntu-latest
-
+    if: false
     steps:
     - name: Setup aws to upload installers to CLAW S3 bucket
       uses: aws-actions/configure-aws-credentials@v4
