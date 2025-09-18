@@ -32,34 +32,24 @@ jobs:
       env:
         IMAGE: ${{ matrix.image }}
       run: |
-        set +ex
         docker run \
           --interactive \
           --rm \
           ${IMAGE} <<EOC
-        # set -o pipefail -e
+        set -o pipefail -e
 
         apt update
         apt install -y wget gnupg curl
 
-        # wget -q -O /usr/share/keyrings/cloudfoundry-archive-keyring.gpg ${CLAW_URL}/debian/cli.cloudfoundry.org.key
-        # echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-
         curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | gpg --dearmor -o /usr/share/keyrings/cloudfoundry-keyring.gpg
         echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry.list
-
-        # wget -qO- https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | gpg --dearmor | tee /usr/share/keyrings/cloudfoundry-archive-keyring.gpg > /dev/null
-        # echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" > /etc/apt/sources.list.d/cloudfoundry-cli.list
-
-        # wget -q -O - ${CLAW_URL}/debian/cli.cloudfoundry.org.key | apt-key add -
-        # echo "deb ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
 
         apt update
         apt install -y cf${VERSION_MAJOR}-cli
 
         which cf
 
-        # set -x
+        set -x
 
         cf  -v
         cf${VERSION_MAJOR} -v
