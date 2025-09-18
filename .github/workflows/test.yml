@@ -19,6 +19,7 @@ jobs:
         image:
         - debian:13
         - debian:12
+        - debian:11
         - ubuntu:latest
     runs-on: ubuntu-latest
     env:
@@ -43,8 +44,12 @@ jobs:
 
         # wget -q -O /usr/share/keyrings/cloudfoundry-archive-keyring.gpg ${CLAW_URL}/debian/cli.cloudfoundry.org.key
         # echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
-        wget -qO- https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | gpg --dearmor | tee /usr/share/keyrings/cloudfoundry-archive-keyring.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" > /etc/apt/sources.list.d/cloudfoundry-cli.list
+
+        curl -fsSL https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | gpg --dearmor -o /usr/share/keyrings/cloudfoundry-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry.list
+
+        # wget -qO- https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | gpg --dearmor | tee /usr/share/keyrings/cloudfoundry-archive-keyring.gpg > /dev/null
+        # echo "deb [signed-by=/usr/share/keyrings/cloudfoundry-archive-keyring.gpg] https://packages.cloudfoundry.org/debian stable main" > /etc/apt/sources.list.d/cloudfoundry-cli.list
 
         # wget -q -O - ${CLAW_URL}/debian/cli.cloudfoundry.org.key | apt-key add -
         # echo "deb ${CLAW_URL}/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list
