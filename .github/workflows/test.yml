@@ -41,8 +41,12 @@ jobs:
 
     - name: debug
       if: always()
+      env:
+        AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_S3_ROLE_ARN:       ${{ secrets.AWS_S3_ROLE_ARN }}
       uses: mxschmitt/action-tmate@v3
-      
+
   create-draft-release:
     name: Draft release
     if: false
