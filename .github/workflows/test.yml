@@ -22,9 +22,9 @@ jobs:
         - ubuntu:latest
     runs-on: ubuntu-latest
     env:
-      CLAW_URL:      ${{ needs.setup.outputs.claw-url }}
-      VERSION_BUILD: ${{ needs.setup.outputs.version-build }}
-      VERSION_MAJOR: ${{ needs.setup.outputs.version-major }}
+      CLAW_URL:      https://packages.cloudfoundry.org
+      VERSION_BUILD: 8.16.0 
+      VERSION_MAJOR: 8
     steps:
 
     - name: Install CF CLI via apt
